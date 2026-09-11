@@ -1,0 +1,13 @@
+{
+  "name": "jucees-cnae-assistente",
+  "version": "1.6.0",
+  "private": true,
+  "description": "Extensão assistida para CNAEs, respostas de endereço e objetos na Viabilidade do Simplifica/ES.",
+  "scripts": {
+    "pretest": "node scripts/assert-tests-present.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

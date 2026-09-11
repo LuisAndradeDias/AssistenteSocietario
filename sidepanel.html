@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>JUCEES Assistente</title>
+  <link rel="stylesheet" href="styles/sidepanel.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>JUCEES Assistente</h1>
+    <p>Versão 1.6.0 — CNAEs, respostas de endereço e objetos com validação assistida.</p>
+  </header>
+
+  <section class="card">
+    <div class="section-header">
+      <div>
+        <h2>Dossiê JSON</h2>
+        <p class="section-subtitle">Importação local, sem envio externo.</p>
+      </div>
+      <span id="dossierBadge" class="badge neutral">Não importado</span>
+    </div>
+    <input id="dossierFile" type="file" accept="application/json,.json">
+    <p id="dossierDetail">Nenhum dossiê carregado.</p>
+    <div id="dossierPreview" hidden>
+      <dl id="dossierSummary"></dl>
+      <div id="dossierMessages"></div>
+      <div class="inline-actions">
+        <button id="applyDossierCnaes" disabled>Usar CNAEs e respostas do dossiê</button>
+        <button id="reloadDossierCnaes" type="button" disabled>Recarregar CNAEs do dossiê</button>
+        <button id="discardDossier" type="button">Descartar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="objectsCard">
+    <div class="section-header">
+      <div>
+        <h2>Objetos</h2>
+        <p class="section-subtitle">Texto explícito do dossiê ou informado manualmente por você.</p>
+      </div>
+      <span id="objectsBadge" class="badge neutral">Não verificado</span>
+    </div>
+
+    <label for="objectCompany">Objeto da Empresa</label>
+    <textarea id="objectCompany" rows="5" placeholder="Digite o texto exatamente como deverá constar no processo."></textarea>
+
+    <label for="objectEstablishment">Objeto do Estabelecimento</label>
+    <textarea id="objectEstablishment" rows="5" placeholder="Digite o texto exatamente como deverá constar neste estabelecimento."></textarea>
+
+    <p id="objectsDetail" class="summary">Nenhum objeto aplicado nesta sessão.</p>
+    <div class="inline-actions">
+      <button id="loadDossierObjects" type="button" disabled>Usar objetos do dossiê</button>
+      <button id="analyzeObjects" type="button">Verificar campos</button>
+      <button id="applyObjects" type="button" class="primary" disabled>Aplicar objetos</button>
+    </div>
+    <p class="hint">A extensão não gera nem altera o conteúdo. Se o portal já tiver texto diferente, a operação é bloqueada para revisão.</p>
+  </section>
+
+  <section class="card">
+    <div class="section-header">
+      <div>
+        <h2>Fila de CNAEs</h2>
+        <p class="section-subtitle">Lista editável, principal e velocidade.</p>
+      </div>
+    </div>
+    <label for="codes">Códigos</label>
+    <textarea id="codes" rows="8" placeholder="4751-2/01&#10;4530-7/05"></textarea>
+    <p id="parseSummary" class="summary">Nenhum código informado.</p>
+
+    <label for="principal">Atividade principal</label>
+    <select id="principal"></select>
+
+    <label for="performanceProfile">Velocidade</label>
+    <select id="performanceProfile">
+      <option value="conservative">Conservadora</option>
+      <option value="balanced" selected>Equilibrada</option>
+      <option value="fast">Rápida</option>
+    </select>
+    <p id="performanceHint"></p>
+  </section>
+
+  <section class="card">
+    <div class="section-header">
+      <div>
+        <h2>Tela do portal</h2>
+        <p class="section-subtitle">Validação da etapa antes da execução.</p>
+      </div>
+      <span id="screenBadge" class="badge warning">Não analisada</span>
+    </div>
+    <p id="screenDetail">Abra a etapa de atividades da Viabilidade.</p>
+    <button id="analyze">Analisar tela</button>
+  </section>
+
+  <section class="card actions-card">
+    <div class="section-header compact">
+      <div>
+        <h2>Ações</h2>
+        <p class="section-subtitle">Execução, retomada e limpeza controlada.</p>
+      </div>
+    </div>
+    <div class="action-grid">
+      <button id="start" class="primary">Adicionar atividades e respostas</button>
+      <button id="pause">Pausar</button>
+      <button id="resume">Retomar</button>
+      <button id="stop">Parar</button>
+      <button id="resetRun" type="button">Nova execução</button>
+      <button id="clearExtension" type="button">Limpar extensão</button>
+    </div>
+    <p class="hint">A extensão nunca clica em Avançar, Salvar, Enviar, Finalizar, Concluir, Transmitir ou Protocolar.</p>
+  </section>
+
+  <section id="progressCard" class="card" hidden>
+    <div class="section-header">
+      <div>
+        <h2>Progresso</h2>
+        <p id="runDetail"></p>
+      </div>
+      <span id="runBadge" class="badge neutral">Aguardando</span>
+    </div>
+
+    <div class="progress-shell">
+      <progress id="progressBar" max="100" value="0"></progress>
+    </div>
+
+    <div id="runMetrics" class="run-metrics"></div>
+
+    <div id="results" class="results-table"></div>
+  </section>
+
+  <footer>Nunca avança, salva, envia, transmite ou protocola automaticamente.</footer>
+</main>
+<script src="data/cnae-subclasses-2.3.js"></script>
+<script src="lib/cnae.js"></script>
+<script src="lib/dossier.js"></script>
+<script src="lib/performance.js"></script>
+<script src="sidepanel.js"></script>
+</body>
+</html>

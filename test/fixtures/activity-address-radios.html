@@ -1,0 +1,37 @@
+<!-- Fixture sanitizada derivada da captura real de 02/09/2026.
+     Preserva somente a estrutura necessária para regressão dos rádios de endereço. -->
+<section data-fixture-section="principal">
+  <h2>Atividade Principal</h2>
+  <article data-fixture-card data-role="principal">
+    <h3>4751-2/01 - COMÉRCIO VAREJISTA ESPECIALIZADO DE EQUIPAMENTOS E SUPRIMENTOS DE INFORMÁTICA</h3>
+
+    <!-- O portal mantém um rádio técnico de principal no mesmo cartão. Ele NÃO é resposta de endereço. -->
+    <input type="radio"
+           class="none atividade_is_principal"
+           name="solicitacao[empresas][0][atividades][0][principal]"
+           value="1"
+           checked>
+
+    <p>Exerce atividade no endereço informado?</p>
+    <div class="d-flex flex-wrap" data-fixture-address-question>
+      <div class="br-radio">
+        <input class="atividade_exercer"
+               type="radio"
+               required
+               id="solicitacao_empresas_0_atividades_0_exerceNoEndereco_0"
+               name="solicitacao[empresas][0][atividades][0][exerceNoEndereco]"
+               value="1">
+        <label for="solicitacao_empresas_0_atividades_0_exerceNoEndereco_0">Sim</label>
+      </div>
+      <div class="br-radio">
+        <input class="atividade_exercer"
+               type="radio"
+               required
+               id="solicitacao_empresas_0_atividades_0_exerceNoEndereco_1"
+               name="solicitacao[empresas][0][atividades][0][exerceNoEndereco]"
+               value="0">
+        <label for="solicitacao_empresas_0_atividades_0_exerceNoEndereco_1">Não</label>
+      </div>
+    </div>
+  </article>
+</section>

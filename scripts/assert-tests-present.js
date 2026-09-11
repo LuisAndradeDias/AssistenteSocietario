@@ -1,0 +1,1 @@
+const fs=require('node:fs');const path=require('node:path');const dir=path.resolve(__dirname,'..','test');const files=fs.existsSync(dir)?fs.readdirSync(dir).filter(n=>n.endsWith('.test.js')):[];if(!files.length){console.error('Erro: nenhuma suíte *.test.js foi encontrada.');process.exit(1)}

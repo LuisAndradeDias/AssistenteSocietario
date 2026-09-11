@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"dossie-jucees-v1.schema.json",
+  "title":"Dossiê JUCEES Assistente v1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schemaVersion","geradoEm","origem","processo","empresa","enderecoSede","atividades","socios","capital","administracao","contabilista","declaracoes"],
+  "properties":{
+    "$schema":{"type":"string"},"schemaVersion":{"const":"1.0.0"},"geradoEm":{"type":"string"},
+    "origem":{"type":"object"},"processo":{"type":"object"},"empresa":{"type":"object"},"enderecoSede":{"type":"object"},
+    "atividades":{"type":"object","required":["principal","secundarias"],"properties":{"principal":{"$ref":"#/$defs/activity"},"secundarias":{"type":"array","items":{"$ref":"#/$defs/activity"}}}},
+    "socios":{"type":"array"},"capital":{"type":"object"},"administracao":{"type":"object"},"representantes":{"type":"array"},"contabilista":{"type":"object"},"declaracoes":{"type":"object"}
+  },
+  "$defs":{"activity":{"type":"object","additionalProperties":false,"required":["codigo","exerceNoEndereco"],"properties":{"codigo":{"type":"string","pattern":"^\\d{7}$"},"exerceNoEndereco":{"type":["boolean","null"]}}}}
+}

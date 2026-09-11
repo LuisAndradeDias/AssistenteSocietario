@@ -1,0 +1,125 @@
+{
+  "$schema": "schemas/dossie-jucees-v1.schema.json",
+  "schemaVersion": "1.0.0",
+  "geradoEm": "2026-09-02T09:00:00-03:00",
+  "origem": {
+    "sistema": "Sistema de Contratos do Escritório",
+    "versao": "1.0.0",
+    "documentoId": "TESTE-RESPOSTAS-ENDERECO-001"
+  },
+  "processo": {
+    "tipo": "constituicao",
+    "ufRegistro": "ES",
+    "eventos": []
+  },
+  "empresa": {
+    "nomeEmpresarial": "EMPRESA MODELO COMERCIO VAREJISTA LTDA",
+    "naturezaJuridica": "2062",
+    "porte": "ME",
+    "objetoEmpresa": "Comércio varejista de equipamentos, materiais, móveis, artigos e acessórios diversos, conforme as atividades econômicas informadas neste arquivo de teste.",
+    "objetoEstabelecimento": "Estabelecimento comercial destinado às atividades varejistas informadas neste arquivo de teste."
+  },
+  "enderecoSede": {
+    "cep": "29000000",
+    "tipoLogradouro": "Rua",
+    "logradouro": "Exemplo",
+    "numero": "100",
+    "complemento": "Sala 1",
+    "bairro": "Centro",
+    "municipio": "Vitória",
+    "codigoMunicipioIbge": "3205309",
+    "uf": "ES",
+    "naturezaImovel": "urbano",
+    "areaM2": "40.00"
+  },
+  "atividades": {
+    "principal": {
+      "codigo": "4751201",
+      "exerceNoEndereco": true
+    },
+    "secundarias": [
+      { "codigo": "4530705", "exerceNoEndereco": true },
+      { "codigo": "4713002", "exerceNoEndereco": true },
+      { "codigo": "4742300", "exerceNoEndereco": true },
+      { "codigo": "4744001", "exerceNoEndereco": true },
+      { "codigo": "4744099", "exerceNoEndereco": true },
+      { "codigo": "4752100", "exerceNoEndereco": true },
+      { "codigo": "4753900", "exerceNoEndereco": true },
+      { "codigo": "4754701", "exerceNoEndereco": true },
+      { "codigo": "4754702", "exerceNoEndereco": true },
+      { "codigo": "4754703", "exerceNoEndereco": true },
+      { "codigo": "4755502", "exerceNoEndereco": true },
+      { "codigo": "4755503", "exerceNoEndereco": true },
+      { "codigo": "4756300", "exerceNoEndereco": true },
+      { "codigo": "4757100", "exerceNoEndereco": true },
+      { "codigo": "4759801", "exerceNoEndereco": true },
+      { "codigo": "4761001", "exerceNoEndereco": true },
+      { "codigo": "4761003", "exerceNoEndereco": true },
+      { "codigo": "4762800", "exerceNoEndereco": true },
+      { "codigo": "4763601", "exerceNoEndereco": true },
+      { "codigo": "4763602", "exerceNoEndereco": true },
+      { "codigo": "4772500", "exerceNoEndereco": true },
+      { "codigo": "4781400", "exerceNoEndereco": true },
+      { "codigo": "4782201", "exerceNoEndereco": true },
+      { "codigo": "4782202", "exerceNoEndereco": true },
+      { "codigo": "4783101", "exerceNoEndereco": true },
+      { "codigo": "4783102", "exerceNoEndereco": true },
+      { "codigo": "4789001", "exerceNoEndereco": true },
+      { "codigo": "4789007", "exerceNoEndereco": false }
+    ]
+  },
+  "socios": [
+    {
+      "id": "socio-1",
+      "tipoPessoa": "PF",
+      "nome": "PESSOA FICTICIA PARA TESTE",
+      "cpfCnpj": "52998224725",
+      "nacionalidade": "brasileira",
+      "estadoCivil": "solteiro",
+      "profissao": "empresário",
+      "dataNascimento": "1990-01-01",
+      "endereco": {
+        "cep": "29000000",
+        "logradouro": "Rua Exemplo",
+        "numero": "200",
+        "bairro": "Centro",
+        "municipio": "Vitória",
+        "codigoMunicipioIbge": "3205309",
+        "uf": "ES"
+      },
+      "email": "teste@example.invalid",
+      "telefone": "27999999999",
+      "quotas": "10000"
+    }
+  ],
+  "capital": {
+    "valorTotal": "10000.00",
+    "moeda": "BRL",
+    "totalQuotas": "10000",
+    "valorQuota": "1.00",
+    "integralizacao": [
+      {
+        "socioId": "socio-1",
+        "valor": "10000.00",
+        "forma": "dinheiro",
+        "momento": "ato"
+      }
+    ]
+  },
+  "administracao": {
+    "administradores": ["socio-1"],
+    "prazoMandato": "indeterminado",
+    "poderes": "Administração conforme cláusulas do instrumento contratual revisado pelo responsável."
+  },
+  "contabilista": {
+    "nome": "CONTABILISTA FICTICIO",
+    "cpf": "11144477735",
+    "crc": "ES-000000/O-0",
+    "email": "contador@example.invalid",
+    "telefone": "27999999999"
+  },
+  "declaracoes": {
+    "revisaoHumanaObrigatoria": true,
+    "observacoes": "Arquivo exclusivamente para homologação das respostas de endereço. Não utilizar em processo real."
+  }
+}
