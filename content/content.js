@@ -1,5 +1,7 @@
 (() => {
   const automation = globalThis.JuceesCnaeAutomation;
+  const objectAutomation = globalThis.JuceesObjectAutomation;
+  const processAutomation = globalThis.JuceesProcessAutomation;
   const cnaeTools = globalThis.JuceesCnae;
   const privacy = globalThis.JuceesPrivacy;
   const runStateTools = globalThis.JuceesRunState;
@@ -248,6 +250,46 @@
   async function handleMessage(message) {
     if (message.type === 'juceesCnaePing') {
       return { ok: true, title: document.title, path: privacy.sanitizePagePath(location.href) };
+    }
+    if (message.type === 'juceesObjectsAnalyze') {
+      if (!objectAutomation) return { ok: false, error: 'Módulo de objetos indisponível.' };
+      return { ok: true, analysis: objectAutomation.analyze(document) };
+    }
+    if (message.type === 'juceesObjectsApply') {
+      if (!objectAutomation) return { ok: false, error: 'Módulo de objetos indisponível.' };
+      const result = objectAutomation.apply(message.payload || {}, document);
+      return { ok: result.ok, result };
+    }
+    if (message.type === 'juceesProcessAnalyze') {
+      if (!processAutomation) return { ok: false, error: 'Motor de processo indisponível.' };
+      const analysis = processAutomation.analyzeCurrentScreen(message.values || {}, document);
+      return { ok: true, analysis };
+    }
+    if (message.type === 'juceesProcessApply') {
+      if (!processAutomation) return { ok: false, error: 'Motor de processo indisponível.' };
+      const result = processAutomation.applyCurrentStage(message.values || {}, message.stageId || '', document);
+      return { ok: result.ok, result };
+    }
+    if (message.type === 'juceesProcessCheckpoint') {
+      if (!processAutomation) return { ok: false, error: 'Motor de processo indisponível.' };
+      return { ok: true, checkpoint: processAutomation.checkpoint(message.values || {}, document) };
+    }
+    if (message.type === 'juceesQuestionsAnalyze') {
+      if (!processAutomation) return { ok: false, error: 'Motor de perguntas indisponível.' };
+      const stage = processAutomation.detectStage(document);
+      if (!stage?.supported || stage.stageId !== 'VP-10') {
+        return { ok: false, error: 'As perguntas complementares só podem ser mapeadas quando a tela VP-10 for reconhecida.' };
+      }
+      return { ok: true, stage: { stageId: stage.stageId, confidence: stage.confidence }, questions: processAutomation.scanDynamicQuestions(document) };
+    }
+    if (message.type === 'juceesQuestionsApply') {
+      if (!processAutomation) return { ok: false, error: 'Motor de perguntas indisponível.' };
+      const stage = processAutomation.detectStage(document);
+      if (!stage?.supported || stage.stageId !== 'VP-10' || stage.confidence !== 'high') {
+        return { ok: false, error: 'A tela de Perguntas Complementares não foi reconhecida com confiança alta. Nenhuma resposta foi aplicada.' };
+      }
+      const result = processAutomation.applyDynamicQuestions(message.answers || {}, document);
+      return { ok: result.ok, result };
     }
     if (message.type === 'juceesCnaeAnalyze') {
       const run = controller.active ? controller.state : await recoverStoredRun();

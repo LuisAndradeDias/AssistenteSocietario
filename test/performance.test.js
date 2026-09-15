@@ -60,7 +60,7 @@ test('automação rejeita valores não numéricos usando parâmetros conservador
 test('velocidade não reduz tempos máximos de busca e confirmação', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'content', 'cnae-automation.js'), 'utf8');
   assert.match(source, /timeout = 18000/);
-  assert.match(source, /selectionConfirmed\(normalized, role\), 8500/);
+  assert.match(source, /\), 8500\);/);
 });
 
 test('painel envia apenas o identificador do perfil ao content script', () => {

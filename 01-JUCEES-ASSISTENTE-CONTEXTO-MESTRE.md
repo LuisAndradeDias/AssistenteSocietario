@@ -1,10 +1,9 @@
 # JUCEES Assistente — Contexto Mestre do Projeto
 
-**Atualização:** 2 de setembro de 2026  
-**Base estável de rollback:** 1.4.2 reconstruída  
-**Versão candidata:** 1.5.0 — aguardando homologação real dos rádios `Sim/Não`  
-**Pacote:** `jucees-cnae-assistente-v1.5.0.zip`  
-**Observação:** a linha reconstruída mantém a limitação conhecida da base CNAE parcial até restauração da tabela completa.
+**Atualização:** 14 de setembro de 2026  
+**Base funcional homologada:** CNAEs + `exerceNoEndereco` no cenário real de 29 atividades  
+**Versão candidata integrada:** 1.7.0 — baseline executável da abertura LTDA  
+**Observação:** módulos além de CNAEs/endereço permanecem candidatos até homologação na tela real; a base CNAE local continua parcial, mas CNAE manual ausente é validado pelo portal e não tratado como whitelist.
 
 Este arquivo é a fonte de continuidade do projeto e deve acompanhar o pacote estável.
 
@@ -12,7 +11,7 @@ Este arquivo é a fonte de continuidade do projeto e deve acompanhar o pacote es
 
 ## 1. Instrução para um novo chat
 
-> Leia integralmente o Contexto Mestre do JUCEES Assistente. Continue a partir da candidata 1.5.0, mantendo a 1.4.2 reconstruída como rollback até homologação. Priorize fluidez sem reduzir as confirmações de segurança. Nunca selecione autocomplete pela posição, nunca invente seletores e não automatize avanço, salvamento, transmissão, assinatura ou protocolo. Toda alteração deve ter teste de regressão e homologação na tela real.
+> Leia integralmente o Contexto Mestre do JUCEES Assistente. Continue a partir da candidata integrada 1.7.0, preservando CNAEs + `exerceNoEndereco` como módulos homologados. Nunca selecione controles pela posição, nunca invente seletores e não automatize avanço, salvamento, transmissão, assinatura, geração de taxa ou protocolo. Novas telas usam a baseline executável e permanecem fail-closed até homologação no DOM real.
 
 Nunca fornecer senha gov.br, certificado digital, token, protocolo sigiloso ou dados pessoais desnecessários.
 
@@ -30,31 +29,26 @@ Construir gradualmente uma extensão local do Chrome que importe um dossiê JSON
 
 O desenvolvimento ocorre em módulos pequenos, testáveis e homologados na página real.
 
-### Escopo implementado até a candidata 1.5.0
+### Escopo implementado até a candidata 1.7.0
 
-- inclusão assistida de CNAEs principal e secundários;
-- validação pela tabela CNAE 2.3 local;
-- seleção apenas por código completo e descrição oficial;
-- confirmação pelo cartão final exato, com papel e pergunta do endereço;
-- reconhecimento do papel de CNAE existente;
-- pausa, retomada e recuperação após recarregamento;
-- importação e validação do dossiê JSON versão 1;
-- transferência segura dos CNAEs e do mapa mínimo `exerceNoEndereco` do dossiê para a fila;
-- perfis Conservadora, Equilibrada e Rápida;
-- proteção temporária da aba contra descarte durante a execução;
-- aplicação de `Sim/Não` por CNAE somente quando a resposta é explícita no dossiê;
-- conflito com resposta contrária existente interrompe a fila sem sobrescrever;
-- `null` permanece manual;
-- armazenamento local limitado e sanitizado;
-- 69 testes automatizados na reconstrução atual.
+- CNAEs principal/secundários e `exerceNoEndereco` preservados como módulos homologados;
+- CNAE manual não depende de dossiê nem de presença na base local;
+- Objeto da Empresa e Objeto do Estabelecimento implementados como candidatos, com conflito sem sobrescrita e confirmação exata;
+- baseline executável com 38 etapas de abertura, Viabilidade, FCN, registro e pós-registro;
+- motor genérico de campos com identificação semântica, confirmação e fail-closed;
+- Tipo de Unidade e Forma de Atuação em modo assistido por dado explícito;
+- motor dinâmico de Perguntas Complementares;
+- checkpoint por etapa e histórico de análise em `storage.session`;
+- dossiê opcional ampliado, com correção manual no painel;
+- ações irreversíveis continuam bloqueadas;
+- 147 testes automatizados na candidata 1.7.0.
 
-### Ainda não implementado
+### Ainda depende de homologação/mapeamento real
 
-- aplicação automática dos demais dados do dossiê;
-- Objeto da Empresa e Objeto do Estabelecimento;
-- tipo de unidade, forma de atuação e perguntas finais;
-- dados societários de constituição ou alteração;
-- avanço, salvamento, envio, assinatura, transmissão ou protocolo.
+- seletores/estrutura definitiva das telas documentais da Viabilidade anteriores a Atividades;
+- coleções complexas de QSA, administradores, representantes, integralizações, assinantes e documentos;
+- telas de taxa, contrato, assinaturas, protocolo e pós-registro, que permanecem conferência/manual;
+- qualquer campo que o motor reconheça apenas com confiança moderada.
 
 ---
 

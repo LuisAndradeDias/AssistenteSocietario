@@ -2,10 +2,15 @@
   const tools = globalThis.JuceesCnae;
   const dossierTools = globalThis.JuceesDossier;
   const performanceTools = globalThis.JuceesPerformance;
+  const processBaseline = globalThis.JuceesProcessBaseline;
+  const processData = globalThis.JuceesProcessData;
   const STORAGE_KEY = 'juceesCnaeRunState';
   const DRAFT_KEY = 'juceesCnaeDraft';
   const SETTINGS_KEY = 'juceesCnaeSettings';
   const OBJECT_DRAFT_KEY = 'juceesObjectDraft';
+  const PROCESS_DRAFT_KEY = 'juceesProcessDrafts';
+  const QUESTIONS_DRAFT_KEY = 'juceesQuestionDrafts';
+  const PROCESS_AUDIT_KEY = 'juceesProcessAudit';
   const elements = {
     codes: document.getElementById('codes'),
     principal: document.getElementById('principal'),
@@ -42,7 +47,24 @@
     objectsDetail: document.getElementById('objectsDetail'),
     loadDossierObjects: document.getElementById('loadDossierObjects'),
     analyzeObjects: document.getElementById('analyzeObjects'),
-    applyObjects: document.getElementById('applyObjects')
+    applyObjects: document.getElementById('applyObjects'),
+    processBadge: document.getElementById('processBadge'),
+    processStage: document.getElementById('processStage'),
+    processPhase: document.getElementById('processPhase'),
+    processDetail: document.getElementById('processDetail'),
+    processMetrics: document.getElementById('processMetrics'),
+    processFields: document.getElementById('processFields'),
+    processForbidden: document.getElementById('processForbidden'),
+    analyzeProcess: document.getElementById('analyzeProcess'),
+    applyProcess: document.getElementById('applyProcess'),
+    checkpointProcess: document.getElementById('checkpointProcess'),
+    processRoadmap: document.getElementById('processRoadmap'),
+    processAuditSummary: document.getElementById('processAuditSummary'),
+    questionsBadge: document.getElementById('questionsBadge'),
+    questionsDetail: document.getElementById('questionsDetail'),
+    questionsList: document.getElementById('questionsList'),
+    analyzeQuestions: document.getElementById('analyzeQuestions'),
+    applyQuestions: document.getElementById('applyQuestions')
   };
 
   let parsed = { codes: [], invalid: [], unknown: [] };
@@ -51,6 +73,10 @@
   let importedDossier = null;
   let appliedAddressAnswers = {};
   let dossierLoadSequence = 0;
+  let currentProcessAnalysis = null;
+  let stageManualDrafts = {};
+  let questionAnswers = {};
+  let processAudit = {};
   const MAX_DOSSIER_BYTES = 1024 * 1024;
 
   function escapeHtml(value) {
@@ -79,6 +105,47 @@
     elements.dossierMessages.append(message);
   }
 
+
+  function invalidateProcessPanel(reason = 'Dados de entrada alterados. Analise novamente a tela atual antes de aplicar qualquer valor.') {
+    currentProcessAnalysis = null;
+    elements.processBadge.className = 'badge warning';
+    elements.processBadge.textContent = 'Reanalisar';
+    elements.processStage.textContent = 'Dados alterados';
+    elements.processPhase.textContent = '';
+    elements.processDetail.textContent = reason;
+    elements.processMetrics.replaceChildren();
+    elements.processFields.replaceChildren();
+    elements.processFields.hidden = true;
+    elements.processForbidden.hidden = true;
+    elements.processForbidden.textContent = '';
+    elements.applyProcess.disabled = true;
+    elements.checkpointProcess.disabled = true;
+    renderRoadmap('');
+  }
+
+  function normalizeChoiceLabel(value) {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  function findQuestionOption(select, stored) {
+    const candidates = new Set([normalizeChoiceLabel(stored)]);
+    if (stored === true || normalizeChoiceLabel(stored) === 'true' || normalizeChoiceLabel(stored) === '1') {
+      candidates.add('sim');
+      candidates.add('yes');
+    }
+    if (stored === false || normalizeChoiceLabel(stored) === 'false' || normalizeChoiceLabel(stored) === '0') {
+      candidates.add('nao');
+      candidates.add('no');
+    }
+    return [...select.options].find((entry) => {
+      return candidates.has(normalizeChoiceLabel(entry.value)) || candidates.has(normalizeChoiceLabel(entry.textContent));
+    });
+  }
+
   function renderDossier(documentData, report, filename) {
     const summary = dossierTools.summarizeDossier(documentData);
     elements.dossierSummary.replaceChildren();
@@ -98,6 +165,9 @@
     if (hiddenMessages) appendDossierMessage('warning', { message: `${hiddenMessages} ocorrência(s) adicional(is) não exibida(s).` });
 
     importedDossier = report.valid ? documentData : null;
+    invalidateProcessPanel(report.valid
+      ? 'Dossiê carregado/alterado. Analise novamente a tela atual para cruzar os novos dados.'
+      : 'O dossiê informado é inválido. Corrija-o ou continue com preenchimento manual e reanalise a tela.');
     elements.applyDossierCnaes.disabled = !report.valid;
     elements.reloadDossierCnaes.disabled = !report.valid;
     const hasDossierObjects = Boolean(documentData?.empresa?.objetoEmpresa?.trim() && documentData?.empresa?.objetoEstabelecimento?.trim());
@@ -124,6 +194,7 @@
     elements.loadDossierObjects.disabled = true;
     elements.dossierDetail.textContent = 'Nenhum dossiê carregado.';
     setDossierBadge('neutral', 'Não importado');
+    invalidateProcessPanel('Dossiê removido. Os valores manuais da sessão foram preservados; analise novamente a tela atual.');
   }
 
   async function loadDossier(file) {
@@ -171,6 +242,413 @@
       return await chrome.tabs.sendMessage(tab.id, message);
     } catch {
       throw new Error('A extensão ainda não está ativa nessa página. Recarregue a aba do Simplifica/ES e tente novamente.');
+    }
+  }
+
+  function toneForStatus(status) {
+    if (['confirmed', 'verified', 'same_existing', 'ready_for_human_review'].includes(status)) return 'success';
+    if (['processing', 'running', 'ready'].includes(status)) return 'running';
+    if (['conflict', 'ambiguous', 'unverified', 'screen_error', 'error'].includes(status)) return 'error';
+    if (['not_informed', 'manual', 'conference', 'not_found', 'unmapped', 'review_required'].includes(status)) return 'warning';
+    return 'neutral';
+  }
+
+  function humanMode(mode) {
+    const modes = {
+      auto_safe: 'Automático seguro', assisted: 'Assistido', conference: 'Conferência', manual: 'Manual', blocked: 'Bloqueado'
+    };
+    return modes[mode] || mode || '—';
+  }
+
+  function humanStatus(status) {
+    const statuses = {
+      confirmed: 'Confirmado', verified: 'Confirmado', ready: 'Pronto', conflict: 'Conflito', ambiguous: 'Ambíguo',
+      not_found: 'Não localizado', not_informed: 'Não informado', manual: 'Manual', conference: 'Conferir',
+      blocked: 'Bloqueado', unverified: 'Não confirmado', review_required: 'Revisão necessária',
+      ready_for_human_review: 'Pronto para revisão', mapped: 'Mapeado'
+    };
+    return statuses[status] || status || '—';
+  }
+
+  function renderRoadmap(currentStageId = '') {
+    if (!elements.processRoadmap || !processBaseline?.STAGES) return;
+    elements.processRoadmap.replaceChildren();
+    for (const stage of processBaseline.STAGES) {
+      const row = document.createElement('div');
+      row.className = `roadmap-row${stage.id === currentStageId ? ' current' : ''}`;
+      const id = document.createElement('span');
+      id.className = 'roadmap-id';
+      id.textContent = stage.id;
+      const title = document.createElement('span');
+      title.className = 'roadmap-title';
+      title.textContent = stage.title;
+      const badge = document.createElement('span');
+      const audit = processAudit?.[stage.id];
+      if (audit?.status === 'ready_for_human_review') { badge.className = 'badge success'; badge.textContent = 'Revisado'; }
+      else if (audit?.status === 'review_required') { badge.className = 'badge warning'; badge.textContent = 'Revisar'; }
+      else if (audit) { badge.className = 'badge running'; badge.textContent = 'Analisado'; }
+      else {
+        badge.className = `badge ${stage.status === 'homologated' ? 'success' : stage.status === 'candidate' ? 'running' : 'neutral'}`;
+        badge.textContent = stage.status === 'homologated' ? 'Homologado' : stage.status === 'candidate' ? 'Candidato' : stage.status === 'future' ? 'Futuro' : 'Documental';
+      }
+      row.append(id, title, badge);
+      elements.processRoadmap.append(row);
+    }
+    renderAuditSummary();
+  }
+
+  function valuesForCurrentStage(stageId) {
+    const manual = stageManualDrafts?.[stageId] || {};
+    return processData.mergeStageValues(importedDossier, stageId, manual);
+  }
+
+  async function saveProcessDrafts() {
+    await chrome.storage.session.set({
+      [PROCESS_DRAFT_KEY]: stageManualDrafts,
+      [QUESTIONS_DRAFT_KEY]: questionAnswers,
+      [PROCESS_AUDIT_KEY]: processAudit
+    });
+  }
+
+  function auditStatusFromAnalysis(analysis) {
+    if (!analysis?.supported) return 'review_required';
+    const counts = analysis.counts || {};
+    const conflicts = (counts.conflict || 0) + (counts.ambiguous || 0) + (counts.not_found || 0) + (counts.unverified || 0);
+    const pending = (counts.not_informed || 0) + (counts.manual || 0) + (counts.conference || 0) + (counts.ready || 0);
+    if (conflicts) return 'review_required';
+    if (pending) return 'analyzed';
+    return 'ready_for_human_review';
+  }
+
+  function recordProcessAudit(analysis, forcedStatus = '') {
+    if (!analysis?.stageId) return;
+    processAudit[analysis.stageId] = {
+      status: forcedStatus || auditStatusFromAnalysis(analysis),
+      confidence: analysis.confidence || '',
+      counts: analysis.counts || {},
+      updatedAt: new Date().toISOString()
+    };
+    renderRoadmap(analysis.stageId);
+    void saveProcessDrafts();
+  }
+
+  function renderAuditSummary() {
+    const entries = Object.values(processAudit || {});
+    if (!entries.length) {
+      elements.processAuditSummary.textContent = 'Nenhuma etapa analisada nesta sessão.';
+      return;
+    }
+    const ready = entries.filter((entry) => entry.status === 'ready_for_human_review').length;
+    const review = entries.filter((entry) => entry.status === 'review_required').length;
+    elements.processAuditSummary.textContent = `${entries.length} etapa(s) analisada(s) • ${ready} pronta(s) para revisão • ${review} com revisão necessária.`;
+  }
+
+  function fieldEditor(stageId, field, valueRecord) {
+    if (['collection', 'dynamic_questions', 'status'].includes(field.kind)) return null;
+    if (field.mode === 'blocked') return null;
+    let input;
+    if (field.kind === 'boolean') {
+      input = document.createElement('select');
+      for (const [value, label] of [['', 'Não informado'], ['true', 'Sim'], ['false', 'Não']]) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        input.append(option);
+      }
+      if (valueRecord?.value === true) input.value = 'true';
+      else if (valueRecord?.value === false) input.value = 'false';
+      else input.value = '';
+    } else if (field.kind === 'textarea') {
+      input = document.createElement('textarea');
+      input.rows = 3;
+      input.value = valueRecord?.value == null ? '' : String(valueRecord.value);
+    } else {
+      input = document.createElement('input');
+      input.type = field.kind === 'date' ? 'date' : field.kind === 'email' ? 'email' : field.kind === 'number' ? 'text' : 'text';
+      input.value = Array.isArray(valueRecord?.value) ? valueRecord.value.join('; ') : valueRecord?.value == null ? '' : String(valueRecord.value);
+    }
+    input.className = 'stage-editor';
+    input.dataset.fieldKey = field.key;
+    input.setAttribute('aria-label', `Valor manual para ${field.label}`);
+    input.addEventListener('change', () => {
+      const stage = processBaseline.getStage(stageId);
+      const definition = stage?.fields.find((item) => item.key === field.key);
+      const raw = field.kind === 'boolean' ? input.value : input.value;
+      const parsedValue = raw === '' ? '' : processData.serializeManualValue(definition, raw);
+      stageManualDrafts[stageId] ||= {};
+      if (parsedValue === '' || parsedValue === null && field.kind !== 'boolean') delete stageManualDrafts[stageId][field.key];
+      else stageManualDrafts[stageId][field.key] = { value: parsedValue };
+      elements.processBadge.className = 'badge warning';
+      elements.processBadge.textContent = 'Reanalisar';
+      elements.processDetail.textContent = 'Um valor manual foi alterado. Reanalise a etapa antes de aplicar.';
+      elements.applyProcess.disabled = true;
+      void saveProcessDrafts();
+    });
+    return input;
+  }
+
+  function renderProcessFields(analysis) {
+    elements.processFields.replaceChildren();
+    if (!analysis?.stageId) {
+      elements.processFields.hidden = true;
+      return;
+    }
+    const stage = processBaseline.getStage(analysis.stageId);
+    const values = valuesForCurrentStage(analysis.stageId);
+    for (const field of stage?.fields || []) {
+      const result = analysis.fields?.find((item) => item.key === field.key) || { status: 'not_informed', detail: 'Ainda não analisado.' };
+      const valueRecord = values[field.key];
+      const row = document.createElement('div');
+      row.className = `process-field ${toneForStatus(result.status)}`;
+
+      const header = document.createElement('div');
+      header.className = 'process-field-header';
+      const label = document.createElement('strong');
+      label.textContent = field.label;
+      const badges = document.createElement('div');
+      badges.className = 'field-badges';
+      const mode = document.createElement('span');
+      mode.className = 'mini-badge';
+      mode.textContent = humanMode(field.mode);
+      const status = document.createElement('span');
+      status.className = `mini-badge ${toneForStatus(result.status)}`;
+      status.textContent = humanStatus(result.status);
+      badges.append(mode, status);
+      header.append(label, badges);
+
+      const detail = document.createElement('p');
+      detail.className = 'field-detail';
+      const source = valueRecord?.source === 'manual' ? 'Manual' : valueRecord?.source === 'dossier' ? 'Dossiê' : 'Sem dado';
+      detail.textContent = `${source} • ${result.detail || 'Sem diagnóstico.'}`;
+      row.append(header, detail);
+
+      const editor = fieldEditor(analysis.stageId, field, valueRecord);
+      if (editor) row.append(editor);
+      else if (valueRecord) {
+        const preview = document.createElement('p');
+        preview.className = 'field-value-preview';
+        preview.textContent = `Dado disponível: ${processData.previewValue(field, valueRecord.value)}`;
+        row.append(preview);
+      }
+      elements.processFields.append(row);
+    }
+    elements.processFields.hidden = !(stage?.fields?.length);
+  }
+
+  function renderProcessAnalysis(analysis) {
+    currentProcessAnalysis = analysis?.supported ? analysis : null;
+    const supported = Boolean(analysis?.supported && analysis?.stageId);
+    elements.processBadge.className = `badge ${supported ? (analysis.confidence === 'high' ? 'success' : 'warning') : 'warning'}`;
+    elements.processBadge.textContent = supported ? (analysis.confidence === 'high' ? 'Reconhecida' : 'Validar DOM') : 'Não reconhecida';
+    elements.processStage.textContent = supported ? `${analysis.stageId} — ${analysis.title}` : 'Nenhuma etapa reconhecida';
+    elements.processPhase.textContent = supported ? String(analysis.phase || '').replace('_', ' ') : '';
+    elements.processDetail.textContent = analysis?.detail || 'A tela não foi reconhecida com segurança.';
+    renderRoadmap(supported ? analysis.stageId : '');
+    renderProcessFields(analysis);
+
+    elements.processMetrics.replaceChildren();
+    if (supported) {
+      const metrics = [
+        ['Confirmados', analysis.counts?.confirmed || 0],
+        ['Prontos', analysis.counts?.ready || 0],
+        ['Pendências', (analysis.counts?.not_informed || 0) + (analysis.counts?.manual || 0) + (analysis.counts?.conference || 0)],
+        ['Revisar', (analysis.counts?.conflict || 0) + (analysis.counts?.ambiguous || 0) + (analysis.counts?.not_found || 0) + (analysis.counts?.unverified || 0)]
+      ];
+      for (const [label, value] of metrics) {
+        const metric = document.createElement('div');
+        metric.className = 'process-metric';
+        const strong = document.createElement('strong'); strong.textContent = String(value);
+        const span = document.createElement('span'); span.textContent = label;
+        metric.append(strong, span); elements.processMetrics.append(metric);
+      }
+    }
+
+    const forbidden = analysis?.forbiddenActions || [];
+    if (forbidden.length) {
+      elements.processForbidden.hidden = false;
+      elements.processForbidden.textContent = `Ações protegidas detectadas e não automatizadas: ${forbidden.join(', ')}.`;
+    } else {
+      elements.processForbidden.hidden = true;
+      elements.processForbidden.textContent = '';
+    }
+
+    const stage = supported ? processBaseline.getStage(analysis.stageId) : null;
+    const genericApply = supported && analysis.confidence === 'high' && stage?.applyEnabled && !['activities', 'questions', 'checkpoint'].includes(stage.specialized || '');
+    elements.applyProcess.disabled = !genericApply;
+    elements.checkpointProcess.disabled = !supported;
+  }
+
+  async function analyzeProcess() {
+    elements.analyzeProcess.disabled = true;
+    elements.processBadge.className = 'badge running';
+    elements.processBadge.textContent = 'Analisando';
+    elements.processDetail.textContent = 'Identificando etapa e controles por evidências estruturais…';
+    try {
+      let response = await sendToPortal({ type: 'juceesProcessAnalyze', values: {} });
+      if (!response?.ok) throw new Error(response?.error || 'Não foi possível analisar a etapa.');
+      let analysis = response.analysis;
+      if (analysis?.supported && analysis.stageId) {
+        const values = valuesForCurrentStage(analysis.stageId);
+        response = await sendToPortal({ type: 'juceesProcessAnalyze', values });
+        if (!response?.ok) throw new Error(response?.error || 'Não foi possível cruzar os dados da etapa.');
+        analysis = response.analysis;
+      }
+      renderProcessAnalysis(analysis);
+      if (analysis?.supported) recordProcessAudit(analysis);
+      return analysis;
+    } catch (error) {
+      renderProcessAnalysis({ supported: false, detail: error.message, fields: [], forbiddenActions: [] });
+      return null;
+    } finally {
+      elements.analyzeProcess.disabled = false;
+    }
+  }
+
+  async function applyProcessStage() {
+    if (!currentProcessAnalysis?.stageId) return;
+    const stageId = currentProcessAnalysis.stageId;
+    const values = valuesForCurrentStage(stageId);
+    elements.applyProcess.disabled = true;
+    elements.processBadge.className = 'badge running';
+    elements.processBadge.textContent = 'Aplicando';
+    elements.processDetail.textContent = 'Aplicando somente campos vazios/compatíveis e confirmando o DOM…';
+    try {
+      const response = await sendToPortal({ type: 'juceesProcessApply', stageId, values });
+      const result = response?.result;
+      if (!result) throw new Error(response?.error || 'O portal não retornou o resultado da aplicação.');
+      elements.processDetail.textContent = result.detail;
+      elements.processBadge.className = `badge ${result.ok ? 'success' : 'error'}`;
+      elements.processBadge.textContent = result.ok ? 'Aplicado/confirmado' : 'Revisão necessária';
+      await analyzeProcess();
+    } catch (error) {
+      elements.processBadge.className = 'badge error';
+      elements.processBadge.textContent = 'Erro';
+      elements.processDetail.textContent = error.message;
+    }
+  }
+
+  async function checkpointProcessStage() {
+    if (!currentProcessAnalysis?.stageId) return;
+    const values = valuesForCurrentStage(currentProcessAnalysis.stageId);
+    elements.checkpointProcess.disabled = true;
+    try {
+      const response = await sendToPortal({ type: 'juceesProcessCheckpoint', values });
+      if (!response?.ok) throw new Error(response?.error || 'Não foi possível conferir a etapa.');
+      const checkpoint = response.checkpoint;
+      elements.processBadge.className = `badge ${checkpoint.status === 'ready_for_human_review' ? 'success' : 'warning'}`;
+      elements.processBadge.textContent = checkpoint.status === 'ready_for_human_review' ? 'Pronto para revisão' : 'Revisão necessária';
+      elements.processDetail.textContent = checkpoint.detail;
+      recordProcessAudit(currentProcessAnalysis, checkpoint.status);
+    } catch (error) {
+      elements.processBadge.className = 'badge error';
+      elements.processBadge.textContent = 'Erro';
+      elements.processDetail.textContent = error.message;
+    } finally {
+      elements.checkpointProcess.disabled = false;
+    }
+  }
+
+  function dossierQuestionValue(question) {
+    const source = importedDossier?.estabelecimento?.perguntasComplementares;
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return undefined;
+    if (Object.prototype.hasOwnProperty.call(source, question.key)) return source[question.key];
+    const exactKey = Object.keys(source).find((key) => key.trim().toLowerCase() === question.questionText.trim().toLowerCase());
+    return exactKey ? source[exactKey] : undefined;
+  }
+
+  function renderQuestions(questions) {
+    elements.questionsList.replaceChildren();
+    if (!questions?.length) {
+      elements.questionsList.hidden = true;
+      elements.applyQuestions.disabled = true;
+      return;
+    }
+    for (const question of questions) {
+      const row = document.createElement('div');
+      row.className = 'question-row';
+      const label = document.createElement('label');
+      label.textContent = question.questionText;
+      const select = document.createElement('select');
+      select.dataset.questionKey = question.key;
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = 'Manual / não informado';
+      select.append(blank);
+      for (const option of question.options || []) {
+        if (!String(option.label || option.value || '').trim()) continue;
+        const item = document.createElement('option');
+        item.value = option.label || option.value;
+        item.textContent = option.label || option.value;
+        select.append(item);
+      }
+      const stored = Object.prototype.hasOwnProperty.call(questionAnswers, question.key) ? questionAnswers[question.key] : dossierQuestionValue(question);
+      if (stored !== undefined && stored !== null) {
+        const option = findQuestionOption(select, stored);
+        if (option) {
+          select.value = option.value;
+          questionAnswers[question.key] = option.value;
+        }
+      }
+      select.addEventListener('change', () => {
+        if (select.value) questionAnswers[question.key] = select.value;
+        else delete questionAnswers[question.key];
+        elements.applyQuestions.disabled = Object.keys(questionAnswers).length === 0;
+        void saveProcessDrafts();
+      });
+      const meta = document.createElement('p');
+      meta.className = 'field-detail';
+      const checked = question.options?.find((option) => option.checked);
+      meta.textContent = checked ? `Portal: ${checked.label || checked.value}` : 'Portal: sem resposta marcada identificada.';
+      row.append(label, select, meta);
+      elements.questionsList.append(row);
+    }
+    elements.questionsList.hidden = false;
+    elements.applyQuestions.disabled = Object.keys(questionAnswers).length === 0;
+  }
+
+  async function analyzeQuestions() {
+    elements.analyzeQuestions.disabled = true;
+    elements.questionsBadge.className = 'badge running';
+    elements.questionsBadge.textContent = 'Mapeando';
+    try {
+      const response = await sendToPortal({ type: 'juceesQuestionsAnalyze' });
+      if (!response?.ok) throw new Error(response?.error || 'Não foi possível mapear perguntas.');
+      const questions = response.questions || [];
+      renderQuestions(questions);
+      elements.questionsBadge.className = `badge ${questions.length ? 'success' : 'warning'}`;
+      elements.questionsBadge.textContent = questions.length ? `${questions.length} mapeada(s)` : 'Nenhuma';
+      elements.questionsDetail.textContent = questions.length
+        ? 'Responda somente o que você conhece. A extensão reapresenta as opções exatamente como estão no portal.'
+        : 'Nenhum grupo de pergunta com opções foi reconhecido nesta tela.';
+    } catch (error) {
+      elements.questionsBadge.className = 'badge error';
+      elements.questionsBadge.textContent = 'Erro';
+      elements.questionsDetail.textContent = error.message;
+    } finally {
+      elements.analyzeQuestions.disabled = false;
+    }
+  }
+
+  async function applyQuestionAnswers() {
+    const answers = Object.fromEntries(Object.entries(questionAnswers).filter(([, value]) => value !== '' && value !== null && value !== undefined));
+    if (!Object.keys(answers).length) return;
+    elements.applyQuestions.disabled = true;
+    elements.questionsBadge.className = 'badge running';
+    elements.questionsBadge.textContent = 'Aplicando';
+    try {
+      const response = await sendToPortal({ type: 'juceesQuestionsApply', answers });
+      const result = response?.result;
+      if (!result) throw new Error(response?.error || 'Não foi possível aplicar as respostas.');
+      elements.questionsBadge.className = `badge ${result.ok ? 'success' : 'error'}`;
+      elements.questionsBadge.textContent = result.ok ? 'Confirmadas' : 'Revisar';
+      elements.questionsDetail.textContent = result.detail;
+      await analyzeQuestions();
+    } catch (error) {
+      elements.questionsBadge.className = 'badge error';
+      elements.questionsBadge.textContent = 'Erro';
+      elements.questionsDetail.textContent = error.message;
+    } finally {
+      elements.applyQuestions.disabled = Object.keys(questionAnswers).length === 0;
     }
   }
 
@@ -565,7 +1043,7 @@
     if (!confirmed) return;
     try { await sendToPortal({ type: 'juceesCnaeStop' }); } catch {}
     await chrome.storage.local.remove([STORAGE_KEY, DRAFT_KEY, SETTINGS_KEY]);
-    await chrome.storage.session.remove([OBJECT_DRAFT_KEY]);
+    await chrome.storage.session.remove([OBJECT_DRAFT_KEY, PROCESS_DRAFT_KEY, QUESTIONS_DRAFT_KEY, PROCESS_AUDIT_KEY]);
     discardDossier();
     elements.codes.value = '';
     appliedAddressAnswers = {};
@@ -578,6 +1056,17 @@
     elements.objectEstablishment.value = '';
     setObjectsState('neutral', 'Não verificado', 'Nenhum objeto aplicado nesta sessão.');
     updateObjectButtons();
+    stageManualDrafts = {};
+    questionAnswers = {};
+    currentProcessAnalysis = null;
+    processAudit = {};
+    renderProcessAnalysis({ supported: false, detail: 'Extensão limpa. Analise a tela atual para iniciar o assistente.', fields: [], forbiddenActions: [] });
+    elements.questionsList.replaceChildren();
+    elements.questionsList.hidden = true;
+    elements.questionsBadge.className = 'badge neutral';
+    elements.questionsBadge.textContent = 'Não analisadas';
+    elements.questionsDetail.textContent = 'Nenhuma pergunta mapeada nesta sessão.';
+    elements.applyQuestions.disabled = true;
     screenSupported = false;
     elements.screenBadge.className = 'badge warning';
     elements.screenBadge.textContent = 'Não analisada';
@@ -621,6 +1110,11 @@
   elements.applyObjects.addEventListener('click', () => { void applyObjectsToPortal(); });
   elements.objectCompany.addEventListener('input', markObjectsChanged);
   elements.objectEstablishment.addEventListener('input', markObjectsChanged);
+  elements.analyzeProcess.addEventListener('click', () => { void analyzeProcess(); });
+  elements.applyProcess.addEventListener('click', () => { void applyProcessStage(); });
+  elements.checkpointProcess.addEventListener('click', () => { void checkpointProcessStage(); });
+  elements.analyzeQuestions.addEventListener('click', () => { void analyzeQuestions(); });
+  elements.applyQuestions.addEventListener('click', () => { void applyQuestionAnswers(); });
 
   elements.start.addEventListener('click', async () => {
     elements.start.disabled = true;
@@ -673,9 +1167,12 @@
 
   async function initialize() {
     const stored = await chrome.storage.local.get([DRAFT_KEY, STORAGE_KEY, SETTINGS_KEY]);
-    const sessionStored = await chrome.storage.session.get([OBJECT_DRAFT_KEY]);
+    const sessionStored = await chrome.storage.session.get([OBJECT_DRAFT_KEY, PROCESS_DRAFT_KEY, QUESTIONS_DRAFT_KEY, PROCESS_AUDIT_KEY]);
     const draft = stored[DRAFT_KEY] || {};
     const objectDraft = sessionStored[OBJECT_DRAFT_KEY] || {};
+    stageManualDrafts = sessionStored[PROCESS_DRAFT_KEY] || {};
+    questionAnswers = sessionStored[QUESTIONS_DRAFT_KEY] || {};
+    processAudit = sessionStored[PROCESS_AUDIT_KEY] || {};
     const settings = stored[SETTINGS_KEY] || {};
     elements.codes.value = draft.text || '';
     principalPreferenceSet = Object.prototype.hasOwnProperty.call(draft, 'principalCode');
@@ -690,6 +1187,9 @@
     elements.pause.disabled = true;
     elements.resume.disabled = true;
     elements.stop.disabled = true;
+    renderRoadmap();
+    renderProcessAnalysis({ supported: false, detail: 'Abra uma tela do processo e clique em Analisar etapa.', fields: [], forbiddenActions: [] });
+    elements.applyQuestions.disabled = Object.keys(questionAnswers).length === 0;
     if (['running', 'paused'].includes(stored[STORAGE_KEY]?.status)) await analyze();
   }
 

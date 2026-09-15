@@ -33,7 +33,7 @@ test('separa fragmentos inválidos', () => {
 });
 
 test('localiza descrição oficial incorporada', () => {
-  assert.equal(cnae.officialDescription('6201501'), 'DESENVOLVIMENTO DE PROGRAMAS DE COMPUTADOR SOB ENCOMENDA');
+  assert.equal(cnae.officialDescription('6201501'), 'Desenvolvimento de programas de computador sob encomenda');
 });
 
 test('monta plano principal e secundárias', () => {

@@ -41,7 +41,7 @@ test('recupera execução interrompida após recarga', () => {
     status: 'running',
     items: [{ code: '6201501', status: 'searching' }, { code: '6311900', status: 'pending' }]
   });
-  assert.equal(recovered.status, 'stopped');
+  assert.equal(recovered.status, 'review_required');
   assert.equal(recovered.items[0].status, 'unverified');
   assert.equal(recovered.items[1].status, 'pending');
 });
