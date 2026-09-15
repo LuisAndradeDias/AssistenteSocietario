@@ -13,7 +13,7 @@ function source(relativePath) {
 
 test('manifesto declara a versão endurecida em Manifest V3', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, '1.6.0');
+  assert.equal(manifest.version, '1.7.0');
   assert.equal(manifest.minimum_chrome_version, '114');
 });
 
@@ -34,7 +34,10 @@ test('bibliotecas de privacidade e estado carregam antes da automação', () => 
   assert.ok(scripts.indexOf('lib/performance.js') < scripts.indexOf('content/cnae-automation.js'));
   assert.ok(scripts.indexOf('lib/tab-protection.js') < scripts.indexOf('content/content.js'));
   assert.ok(scripts.indexOf('content/cnae-automation.js') < scripts.indexOf('content/content.js'));
+  assert.ok(scripts.indexOf('data/process-baseline.js') < scripts.indexOf('content/process-automation.js'));
+  assert.ok(scripts.indexOf('lib/process-data.js') < scripts.indexOf('content/process-automation.js'));
   assert.ok(scripts.indexOf('content/object-automation.js') < scripts.indexOf('content/content.js'));
+  assert.ok(scripts.indexOf('content/process-automation.js') < scripts.indexOf('content/content.js'));
 });
 
 test('todos os recursos declarados no manifesto existem', () => {
@@ -77,6 +80,7 @@ test('código executável não usa rede remota nem avaliação dinâmica', () =>
     'background.js',
     'content/cnae-automation.js',
     'content/object-automation.js',
+    'content/process-automation.js',
     'content/content.js',
     'lib/cnae.js',
     'lib/dossier.js',
@@ -84,6 +88,8 @@ test('código executável não usa rede remota nem avaliação dinâmica', () =>
     'lib/performance.js',
     'lib/run-state.js',
     'lib/tab-protection.js',
+    'lib/process-data.js',
+    'data/process-baseline.js',
     'sidepanel.js'
   ];
   for (const relativePath of executableFiles) {

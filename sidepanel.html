@@ -8,16 +8,19 @@
 </head>
 <body>
 <main>
-  <header>
-    <h1>JUCEES Assistente</h1>
-    <p>Versão 1.6.0 — CNAEs, respostas de endereço e objetos com validação assistida.</p>
+  <header class="app-header">
+    <div>
+      <h1>JUCEES Assistente</h1>
+      <p>Versão 1.7.0 — abertura LTDA assistida, fail-closed e com revisão humana.</p>
+    </div>
+    <span class="badge neutral">Candidata</span>
   </header>
 
-  <section class="card">
+  <section class="card" id="dossierCard">
     <div class="section-header">
       <div>
         <h2>Dossiê JSON</h2>
-        <p class="section-subtitle">Importação local, sem envio externo.</p>
+        <p class="section-subtitle">Fonte opcional. Importação local, sem envio externo.</p>
       </div>
       <span id="dossierBadge" class="badge neutral">Não importado</span>
     </div>
@@ -27,11 +30,44 @@
       <dl id="dossierSummary"></dl>
       <div id="dossierMessages"></div>
       <div class="inline-actions">
-        <button id="applyDossierCnaes" disabled>Usar CNAEs e respostas do dossiê</button>
-        <button id="reloadDossierCnaes" type="button" disabled>Recarregar CNAEs do dossiê</button>
+        <button id="applyDossierCnaes" disabled>Usar CNAEs e respostas</button>
+        <button id="reloadDossierCnaes" type="button" disabled>Recarregar CNAEs</button>
         <button id="discardDossier" type="button">Descartar</button>
       </div>
     </div>
+  </section>
+
+  <section class="card process-card" id="processCard">
+    <div class="section-header">
+      <div>
+        <h2>Assistente do processo</h2>
+        <p class="section-subtitle">Reconhece a tela atual, cruza dados explícitos e aplica somente campos inequívocos.</p>
+      </div>
+      <span id="processBadge" class="badge neutral">Não analisado</span>
+    </div>
+
+    <div class="stage-banner">
+      <strong id="processStage">Nenhuma etapa reconhecida</strong>
+      <span id="processPhase" class="stage-phase"></span>
+      <p id="processDetail">Abra uma tela do processo no Simplifica/ES e clique em Analisar etapa.</p>
+    </div>
+
+    <div id="processMetrics" class="process-metrics"></div>
+    <div id="processFields" class="process-fields" hidden></div>
+    <div id="processForbidden" class="safety-box" hidden></div>
+
+    <div class="inline-actions">
+      <button id="analyzeProcess" type="button">Analisar etapa</button>
+      <button id="applyProcess" type="button" class="primary" disabled>Aplicar dados seguros</button>
+      <button id="checkpointProcess" type="button" disabled>Conferir etapa</button>
+    </div>
+    <p class="hint">Campos manuais podem ser informados diretamente abaixo quando a etapa for reconhecida. Dados do dossiê têm prioridade menor que uma correção manual feita neste painel.</p>
+    <p id="processAuditSummary" class="summary process-audit-summary">Nenhuma etapa analisada nesta sessão.</p>
+
+    <details class="roadmap-shell">
+      <summary>Mapa completo da abertura</summary>
+      <div id="processRoadmap" class="process-roadmap"></div>
+    </details>
   </section>
 
   <section class="card" id="objectsCard">
@@ -55,15 +91,33 @@
       <button id="analyzeObjects" type="button">Verificar campos</button>
       <button id="applyObjects" type="button" class="primary" disabled>Aplicar objetos</button>
     </div>
-    <p class="hint">A extensão não gera nem altera o conteúdo. Se o portal já tiver texto diferente, a operação é bloqueada para revisão.</p>
+    <p class="hint">A extensão não gera nem reescreve o conteúdo. Texto diferente já existente no portal vira conflito e é preservado.</p>
   </section>
 
-  <section class="card">
+  <section class="card" id="questionsCard">
+    <div class="section-header">
+      <div>
+        <h2>Perguntas complementares</h2>
+        <p class="section-subtitle">Motor dinâmico: identifica a pergunta e as opções reais da tela, sem lista fixa.</p>
+      </div>
+      <span id="questionsBadge" class="badge neutral">Não analisadas</span>
+    </div>
+    <p id="questionsDetail" class="summary">Nenhuma pergunta mapeada nesta sessão.</p>
+    <div id="questionsList" class="question-list" hidden></div>
+    <div class="inline-actions">
+      <button id="analyzeQuestions" type="button">Mapear perguntas</button>
+      <button id="applyQuestions" type="button" class="primary" disabled>Aplicar respostas explícitas</button>
+    </div>
+    <p class="hint">Pergunta sem resposta permanece manual. Uma pergunta que mudar de texto/estrutura não recebe resposta automaticamente.</p>
+  </section>
+
+  <section class="card" id="cnaeCard">
     <div class="section-header">
       <div>
         <h2>Fila de CNAEs</h2>
-        <p class="section-subtitle">Lista editável, principal e velocidade.</p>
+        <p class="section-subtitle">Módulo homologado: lista editável, principal, respostas de endereço e velocidade.</p>
       </div>
+      <span class="badge success">Homologado</span>
     </div>
     <label for="codes">Códigos</label>
     <textarea id="codes" rows="8" placeholder="4751-2/01&#10;4530-7/05"></textarea>
@@ -84,19 +138,19 @@
   <section class="card">
     <div class="section-header">
       <div>
-        <h2>Tela do portal</h2>
-        <p class="section-subtitle">Validação da etapa antes da execução.</p>
+        <h2>Tela de atividades</h2>
+        <p class="section-subtitle">Validação específica do módulo homologado de CNAEs.</p>
       </div>
       <span id="screenBadge" class="badge warning">Não analisada</span>
     </div>
     <p id="screenDetail">Abra a etapa de atividades da Viabilidade.</p>
-    <button id="analyze">Analisar tela</button>
+    <button id="analyze">Analisar tela de CNAEs</button>
   </section>
 
   <section class="card actions-card">
     <div class="section-header compact">
       <div>
-        <h2>Ações</h2>
+        <h2>Ações CNAE</h2>
         <p class="section-subtitle">Execução, retomada e limpeza controlada.</p>
       </div>
     </div>
@@ -108,33 +162,31 @@
       <button id="resetRun" type="button">Nova execução</button>
       <button id="clearExtension" type="button">Limpar extensão</button>
     </div>
-    <p class="hint">A extensão nunca clica em Avançar, Salvar, Enviar, Finalizar, Concluir, Transmitir ou Protocolar.</p>
+    <p class="hint">A extensão não aciona navegação, salvamento, envio, transmissão, assinatura, protocolo nem geração de taxa.</p>
   </section>
 
   <section id="progressCard" class="card" hidden>
     <div class="section-header">
       <div>
-        <h2>Progresso</h2>
+        <h2>Progresso dos CNAEs</h2>
         <p id="runDetail"></p>
       </div>
       <span id="runBadge" class="badge neutral">Aguardando</span>
     </div>
 
-    <div class="progress-shell">
-      <progress id="progressBar" max="100" value="0"></progress>
-    </div>
-
+    <div class="progress-shell"><progress id="progressBar" max="100" value="0"></progress></div>
     <div id="runMetrics" class="run-metrics"></div>
-
     <div id="results" class="results-table"></div>
   </section>
 
-  <footer>Nunca avança, salva, envia, transmite ou protocola automaticamente.</footer>
+  <footer>Preenchimento e conferência assistidos. A decisão profissional e qualquer ação irreversível permanecem humanas.</footer>
 </main>
 <script src="data/cnae-subclasses-2.3.js"></script>
+<script src="data/process-baseline.js"></script>
 <script src="lib/cnae.js"></script>
 <script src="lib/dossier.js"></script>
 <script src="lib/performance.js"></script>
+<script src="lib/process-data.js"></script>
 <script src="sidepanel.js"></script>
 </body>
 </html>

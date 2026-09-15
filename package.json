@@ -1,8 +1,8 @@
 {
   "name": "jucees-cnae-assistente",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
-  "description": "Extensão assistida para CNAEs, respostas de endereço e objetos na Viabilidade do Simplifica/ES.",
+  "description": "Assistente societário modular para abertura na JUCEES/Simplifica ES, com automação fail-closed e revisão humana.",
   "scripts": {
     "pretest": "node scripts/assert-tests-present.js",
     "test": "node --test test/*.test.js"

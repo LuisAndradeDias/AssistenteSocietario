@@ -1,5 +1,24 @@
 # Histórico de versões
 
+## 1.7.0 — 2026-09-14 — candidata integrada da abertura LTDA
+
+- recuperado e implementado `content/object-automation.js`;
+- Objeto da Empresa e Objeto do Estabelecimento passam a ter detecção inequívoca, conflito sem sobrescrita e confirmação pós-eventos;
+- adicionada baseline executável com 38 etapas entre abertura, Viabilidade, FCN, registro e pós-registro;
+- criado motor genérico `content/process-automation.js` para campos textuais, selects, radios e checkboxes com política fail-closed;
+- Tipo de Unidade e Forma de Atuação entram em modo assistido por valor explícito;
+- criado motor dinâmico para Perguntas Complementares, sem lista fixa de perguntas;
+- Perguntas Complementares ficam restritas à etapa VP-10 e a aplicação exige reconhecimento de alta confiança;
+- aplicação genérica e perguntas passam por preflight transacional: conflito conhecido bloqueia qualquer alteração antes do primeiro preenchimento;
+- corrigido tratamento de booleanos Sim/Não para considerar `sim/true/1` e `não/false/0` como aliases alternativos, nunca como múltiplas seleções;
+- painel passa a exibir etapa atual, estados por campo, origem do dado, edição manual, checkpoint e roadmap da sessão;
+- dossiê permanece opcional e foi ampliado para a baseline completa;
+- CNAE ausente da base local passa a gerar alerta em vez de bloqueio no dossiê, mantendo validação reforçada pelo portal;
+- adicionadas redação de IDs em rotas, contratos explícitos de performance e recuperação conservadora de item interrompido;
+- corrigidas quebras visuais de badges/códigos;
+- manifesto e empacotamento passam a declarar todos os novos módulos;
+- suíte ampliada para 147 testes automatizados.
+
 ## 1.5.0 — 2026-09-02 — candidata à homologação
 
 - `exerceNoEndereco` passou a ser transferido do dossiê junto com os CNAEs;
