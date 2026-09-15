@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "name": "JUCEES Assistente",
   "short_name": "JUCEES Assistente",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "minimum_chrome_version": "114",
-  "description": "Auxilia CNAEs, respostas de endereço e objetos na Viabilidade do Simplifica/ES, com validação e revisão humana.",
+  "description": "Assistente societário para abertura na JUCEES/Simplifica ES, com preenchimento seguro, conferência e revisão humana.",
   "permissions": [
     "storage",
     "sidePanel"
@@ -32,13 +32,16 @@
       ],
       "js": [
         "data/cnae-subclasses-2.3.js",
+        "data/process-baseline.js",
         "lib/cnae.js",
         "lib/privacy.js",
         "lib/run-state.js",
         "lib/performance.js",
         "lib/tab-protection.js",
+        "lib/process-data.js",
         "content/cnae-automation.js",
         "content/object-automation.js",
+        "content/process-automation.js",
         "content/content.js"
       ],
       "css": [

@@ -67,11 +67,11 @@ O ambiente autenticado não deve ser transmitido durante a homologação. Use um
 14. **Dossiê JSON válido**
    - importe `examples/dossie-constituicao-v1.exemplo.json`;
    - confirme o selo **Válido** (ou **Válido com alertas**, se o arquivo tiver alertas) e o resumo sem documentos completos;
-   - clique em **Usar CNAEs e respostas do dossiê** e confirme principal `4751-2/01`, 28 secundárias e o resumo de 29 respostas de endereço;
+   - clique em **Usar CNAEs e respostas** e confirme principal `4751-2/01`, 28 secundárias e o resumo de 29 respostas de endereço;
    - confirme que nenhum campo do Simplifica/ES foi alterado antes de **Adicionar atividades e respostas**.
 
 15. **Dossiê JSON inválido**
-   - teste versão diferente de `1.0.0`, CNAE inexistente, CNPJ inválido e capital incompatível;
+   - teste versão diferente de `1.0.0`, CNAE malformado/duplicado, CNPJ inválido e capital incompatível;
    - confirme que os erros indicam o caminho do campo e que o botão de usar CNAEs permanece desabilitado;
    - teste arquivo acima de 1 MiB e confirme a recusa.
 
@@ -147,3 +147,66 @@ O ambiente autenticado não deve ser transmitido durante a homologação. Use um
 - captura da área de atividades, sem CPF, CNPJ, protocolo, senha, token, URL autenticada ou outros dados pessoais.
 
 Se algum seletor não for reconhecido após mudança no portal, preserve somente uma captura e um HTML sanitizado do componente de atividades. Remova scripts, estilos desnecessários, comentários do portal, valores de campos, atributos de sessão, URLs, protocolos, identificadores e dados empresariais antes de adicionar o arquivo a `test/fixtures/`.
+
+## Cenários adicionais da candidata 1.7.0
+
+28. **Objeto da Empresa / Estabelecimento — campos vazios**
+   - abra a tela de Atividades;
+   - informe textos curtos e inequívocos no painel;
+   - clique em **Verificar campos** e depois **Aplicar objetos**;
+   - confirme que ambos os textos aparecem exatamente, inclusive espaços e pontuação relevantes;
+   - confirme que nenhum botão de avanço/salvamento é acionado.
+
+29. **Objetos já idênticos**
+   - deixe no portal exatamente os mesmos textos do painel;
+   - aplique novamente;
+   - confirme que a extensão apenas reconhece os valores como confirmados.
+
+30. **Conflito de objetos**
+   - preencha no portal texto diferente do solicitado;
+   - clique em **Aplicar objetos**;
+   - confirme **Revisão necessária** e que o conteúdo do portal não foi modificado.
+
+31. **Reconhecimento da etapa**
+   - em cada nova tela, clique em **Analisar etapa**;
+   - confirme código e nome da etapa exibidos;
+   - se houver confiança moderada ou tela não reconhecida, não aplique dados; registre print e HTML sanitizado.
+
+32. **Tipo de Unidade**
+   - na tela real, informe no painel somente a opção efetivamente escolhida pelo usuário;
+   - aplique dados seguros;
+   - confirme que nenhum checkbox é selecionado por posição e que o estado final `checked` é relido;
+   - se já houver opção diferente marcada, confirme conflito sem desmarcação.
+
+33. **Forma de Atuação**
+   - repita o cenário anterior com uma ou mais formas de atuação;
+   - confirme correspondência exata de rótulo e preservação de seleção divergente.
+
+34. **Perguntas Complementares dinâmicas**
+   - clique em **Mapear perguntas**;
+   - confirme que o painel reproduz o texto e as opções da tela;
+   - responda somente algumas perguntas e deixe as demais como manual;
+   - aplique e confirme `checked/selected` apenas das respostas explícitas;
+   - altere uma pergunta em fixture/HTML de teste e confirme que a chave muda e a resposta antiga não é reaplicada automaticamente.
+
+35. **Checkpoint da etapa**
+   - clique em **Conferir etapa** após uma tela completa e depois com uma pendência;
+   - confirme `Pronto para revisão` somente sem conflito conhecido;
+   - confirme `Revisão necessária` quando houver campo não informado, não localizado ou divergente.
+
+36. **Ações protegidas**
+   - em telas que exibam Salvar, Avançar, Transmitir, Assinar, Protocolar ou Gerar Taxa;
+   - confirme que o painel apenas informa a presença dessas ações e nunca as executa.
+
+37. **Persistência somente de sessão dos novos rascunhos**
+   - informe dados manuais em uma etapa e feche/reabra apenas o Side Panel: os rascunhos podem permanecer na sessão;
+   - encerre a sessão do navegador ou use **Limpar extensão** e confirme a remoção;
+   - verifique que o dossiê completo continua ausente de `chrome.storage.local`.
+
+
+38. **Pré-validação transacional da tela**
+   - em uma etapa genérica com pelo menos dois valores explícitos, deixe o primeiro campo vazio e preencha o segundo no portal com valor divergente;
+   - clique em **Aplicar dados seguros** e confirme que o primeiro campo continua vazio: o conflito conhecido deve ser detectado antes da primeira alteração;
+   - em Perguntas Complementares, prepare duas respostas e force a segunda pergunta/opção a ficar não reconhecível em fixture/HTML sanitizado;
+   - confirme que nenhuma das duas respostas é aplicada durante o preflight;
+   - falha ocorrida somente depois de um evento real deve interromper imediatamente qualquer ação posterior e exigir revisão.

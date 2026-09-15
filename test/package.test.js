@@ -13,7 +13,7 @@ function source(relativePath) {
 
 test('manifesto declara a versão endurecida em Manifest V3', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, '1.6.0');
+  assert.equal(manifest.version, '1.7.0');
   assert.equal(manifest.minimum_chrome_version, '114');
 });
 
@@ -34,7 +34,10 @@ test('bibliotecas de privacidade e estado carregam antes da automação', () => 
   assert.ok(scripts.indexOf('lib/performance.js') < scripts.indexOf('content/cnae-automation.js'));
   assert.ok(scripts.indexOf('lib/tab-protection.js') < scripts.indexOf('content/content.js'));
   assert.ok(scripts.indexOf('content/cnae-automation.js') < scripts.indexOf('content/content.js'));
+  assert.ok(scripts.indexOf('data/process-baseline.js') < scripts.indexOf('content/process-automation.js'));
+  assert.ok(scripts.indexOf('lib/process-data.js') < scripts.indexOf('content/process-automation.js'));
   assert.ok(scripts.indexOf('content/object-automation.js') < scripts.indexOf('content/content.js'));
+  assert.ok(scripts.indexOf('content/process-automation.js') < scripts.indexOf('content/content.js'));
 });
 
 test('todos os recursos declarados no manifesto existem', () => {
@@ -77,6 +80,7 @@ test('código executável não usa rede remota nem avaliação dinâmica', () =>
     'background.js',
     'content/cnae-automation.js',
     'content/object-automation.js',
+    'content/process-automation.js',
     'content/content.js',
     'lib/cnae.js',
     'lib/dossier.js',
@@ -84,6 +88,8 @@ test('código executável não usa rede remota nem avaliação dinâmica', () =>
     'lib/performance.js',
     'lib/run-state.js',
     'lib/tab-protection.js',
+    'lib/process-data.js',
+    'data/process-baseline.js',
     'sidepanel.js'
   ];
   for (const relativePath of executableFiles) {
@@ -142,7 +148,6 @@ test('seleção exige opção isolada com código e descrição exatos', () => {
   assert.doesNotMatch(code, /matchingDescriptions\[0\]/);
 });
 
-
 test('fila recebe somente o mapa mínimo de respostas de endereço do dossiê', () => {
   const panel = source('sidepanel.js');
   const content = source('content/content.js');
@@ -168,14 +173,12 @@ test('resposta de endereço exige cartão exato e não usa posição global dos 
   assert.doesNotMatch(code, /querySelectorAll\([^)]*radio[^)]*\)\s*\[\s*[01]\s*\]/);
 });
 
-
 test('fila não termina verde quando algum CNAE não foi confirmado', () => {
   const code = source('content/content.js');
   assert.match(code, /unresolvedItems\s*=\s*state\.items\.filter/);
   assert.match(code, /!\['added', 'duplicate'\]\.includes\(item\.status\)/);
   assert.match(code, /unresolvedItems\.length \? 'review_required' : 'completed'/);
 });
-
 
 test('reduzir a fila preserva respostas apenas dos CNAEs que continuam presentes', () => {
   const panel = source('sidepanel.js');
@@ -185,7 +188,6 @@ test('reduzir a fila preserva respostas apenas dos CNAEs que continuam presentes
   assert.match(handler[0], /appliedAddressAnswers = sanitizeAddressAnswers\(appliedAddressAnswers\)/);
   assert.doesNotMatch(handler[0], /appliedAddressAnswers = \{\}/);
 });
-
 
 test('painel evita quebras visuais em badges e códigos sem impedir textos longos de quebrar em palavras', () => {
   const css = source('styles/sidepanel.css');
@@ -206,7 +208,6 @@ test('CNAE manual não depende do dossiê nem é bloqueado só por ausência na 
   assert.match(automation, /selectionConfirmedWithDescription/);
   assert.match(automation, /informado manualmente, validado por código exato/i);
 });
-
 
 test('objetos são independentes do dossiê e ficam somente no armazenamento de sessão', () => {
   const panel = source('sidepanel.js');

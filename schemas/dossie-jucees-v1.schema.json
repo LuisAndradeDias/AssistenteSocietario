@@ -1,15 +1,80 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"dossie-jucees-v1.schema.json",
-  "title":"Dossiê JUCEES Assistente v1",
-  "type":"object",
-  "additionalProperties":false,
-  "required":["schemaVersion","geradoEm","origem","processo","empresa","enderecoSede","atividades","socios","capital","administracao","contabilista","declaracoes"],
-  "properties":{
-    "$schema":{"type":"string"},"schemaVersion":{"const":"1.0.0"},"geradoEm":{"type":"string"},
-    "origem":{"type":"object"},"processo":{"type":"object"},"empresa":{"type":"object"},"enderecoSede":{"type":"object"},
-    "atividades":{"type":"object","required":["principal","secundarias"],"properties":{"principal":{"$ref":"#/$defs/activity"},"secundarias":{"type":"array","items":{"$ref":"#/$defs/activity"}}}},
-    "socios":{"type":"array"},"capital":{"type":"object"},"administracao":{"type":"object"},"representantes":{"type":"array"},"contabilista":{"type":"object"},"declaracoes":{"type":"object"}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dossie-jucees-v1.schema.json",
+  "title": "Dossiê JUCEES Assistente v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "processo", "declaracoes"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": "1.0.0"},
+    "geradoEm": {"type": "string"},
+    "origem": {"type": "object"},
+    "processo": {"type": "object"},
+    "solicitante": {"type": "object"},
+    "empresa": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nomeEmpresarial": {"type": ["string", "null"]},
+        "cnpj": {"type": ["string", "null"]},
+        "naturezaJuridica": {"type": ["string", "null"]},
+        "porte": {"type": ["string", "null"]},
+        "esc": {"type": ["boolean", "null"]},
+        "autorizacaoUsoNome": {"type": ["boolean", "null"]},
+        "tipoNome": {"type": ["string", "null"]},
+        "usarCnpjComoNome": {"type": ["boolean", "null"]},
+        "complementoNome": {"type": ["string", "null"]},
+        "objetoEmpresa": {"type": ["string", "null"]},
+        "objetoEstabelecimento": {"type": ["string", "null"]},
+        "enquadramentoEmClausula": {"type": ["boolean", "null"]},
+        "endereco": {"type": "object"},
+        "contato": {"type": "object"},
+        "email": {"type": ["string", "null"]},
+        "telefone": {"type": ["string", "null"]}
+      }
+    },
+    "enderecoSede": {"type": "object"},
+    "atividades": {
+      "type": "object",
+      "properties": {
+        "principal": {"anyOf": [{"$ref": "#/$defs/activity"}, {"type": "null"}]},
+        "secundarias": {"type": "array", "items": {"$ref": "#/$defs/activity"}}
+      }
+    },
+    "estabelecimento": {"type": "object"},
+    "socios": {"type": "array"},
+    "administradores": {"type": "array"},
+    "capital": {"type": "object"},
+    "administracao": {"type": "object"},
+    "representantes": {"type": "array"},
+    "responsavelLegal": {"type": "object"},
+    "contabilista": {"type": "object"},
+    "clausulas": {"type": "object"},
+    "fcn": {"type": "object"},
+    "consulta": {"type": "object"},
+    "registro": {"type": "object"},
+    "documentos": {"type": "array"},
+    "assinantes": {"type": "array"},
+    "decisoes": {"type": "object"},
+    "declaracoes": {
+      "type": "object",
+      "properties": {
+        "revisaoHumanaObrigatoria": {"const": true},
+        "observacoes": {"type": ["string", "null"]}
+      },
+      "required": ["revisaoHumanaObrigatoria"]
+    }
   },
-  "$defs":{"activity":{"type":"object","additionalProperties":false,"required":["codigo","exerceNoEndereco"],"properties":{"codigo":{"type":"string","pattern":"^\\d{7}$"},"exerceNoEndereco":{"type":["boolean","null"]}}}}
+  "$defs": {
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo", "exerceNoEndereco"],
+      "properties": {
+        "codigo": {"type": "string", "pattern": "^\\d{7}$"},
+        "exerceNoEndereco": {"type": ["boolean", "null"]}
+      }
+    }
+  }
 }

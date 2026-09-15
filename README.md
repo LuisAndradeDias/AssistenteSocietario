@@ -1,85 +1,98 @@
-# JUCEES Assistente 1.5.0 — candidato de homologação
+# JUCEES Assistente 1.7.0 — candidata integrada da abertura LTDA
 
-Extensão local do Chrome para preenchimento assistido da etapa de atividades da Viabilidade no Simplifica/ES.
+Extensão local Chrome Manifest V3 para preenchimento e conferência assistidos de processos no Simplifica ES/JUCEES.
 
-A versão 1.5.0 amplia a fila de CNAEs: quando o dossiê JSON informa `exerceNoEndereco` como `true` ou `false`, a extensão tenta aplicar **Sim** ou **Não** somente no cartão exato daquele CNAE e confirma o estado final. `null` permanece manual.
+A versão 1.7.0 preserva o módulo homologado de CNAEs + `exerceNoEndereco`, conclui a candidata de **Objeto da Empresa / Objeto do Estabelecimento** e adiciona uma arquitetura de processo para todas as telas mapeadas da abertura de Sociedade Empresária Limitada.
 
-> **Status:** 1.5.0 é candidata à homologação real. A base anterior 1.4.2 permanece como rollback até a confirmação em tela real.
+> **Importante:** os módulos novos são candidatos até teste no Simplifica real. Quando o DOM não é inequívoco, a extensão falha fechada e não altera a página.
 
-## O que faz
+## Princípio de segurança
 
-- importa e valida localmente o dossiê `dossie-jucees/v1`;
-- transfere CNAEs e o mapa mínimo `CNAE -> exerceNoEndereco` após ação explícita do usuário;
-- valida CNAE e descrição na base local disponível;
-- distingue atividade principal e secundárias;
-- digita gradualmente e aguarda estabilização do autocomplete;
-- só aceita uma sugestão isolada com código completo e descrição oficial;
-- confirma a inclusão apenas pelo cartão da seção correta, com código exato e a pergunta do endereço;
-- para diante de ambiguidade, descrição divergente, conflito de principal ou confirmação insuficiente;
-- mesmo quando uma secundária não localizada é deixada para o restante da fila prosseguir, o encerramento final vira **Revisão necessária**, nunca **Concluída**;
-- para cada CNAE confirmado, procura os controles `Sim/Não` **dentro do mesmo cartão**;
-- exige exatamente um controle `Sim` e um `Não`, identificados por rótulo/semântica — nunca por posição global;
-- se a resposta pedida já estiver marcada, apenas confirma;
-- se a resposta oposta já estiver marcada, **não sobrescreve**: gera conflito e pausa para revisão;
-- se ambos estiverem vazios, aciona somente a resposta explícita do dossiê e relê o estado final;
-- se `exerceNoEndereco` for `null`, não clica e marca a resposta como manual;
-- mantém perfis Conservadora, Equilibrada e Rápida;
-- protege temporariamente a aba contra descarte durante a fila.
+**Dado explícito → identificação inequívoca → ação → confirmação do DOM → fail-closed → revisão humana.**
 
-Ela **não** avança, salva, envia, assina, transmite, finaliza ou protocola processos.
+A extensão não automatiza comandos equivalentes a:
+
+- Avançar;
+- Salvar;
+- Enviar;
+- Finalizar;
+- Concluir;
+- Transmitir;
+- Assinar;
+- Protocolar;
+- Gerar taxa.
+
+## O que existe na 1.7.0
+
+### Homologado e preservado
+
+- CNAE principal e secundários;
+- CNAE digitado manualmente, inclusive quando ausente da base local recuperada;
+- validação reforçada pelo portal;
+- confirmação pelo cartão final;
+- `exerceNoEndereco` Sim/Não por CNAE;
+- conflito com resposta existente sem sobrescrita;
+- fila visual, pausa, retomada e recuperação conservadora.
+
+### Candidato para homologação
+
+- Objeto da Empresa;
+- Objeto do Estabelecimento;
+- comparação exata e preservação de texto divergente;
+- Assistente do Processo com 38 etapas da baseline de abertura;
+- reconhecimento semântico da tela atual;
+- dados por dossiê ou edição manual da etapa;
+- aplicação genérica de campos escalares, selects, radios e checkboxes somente quando inequívocos;
+- Tipo de Unidade e Forma de Atuação em modo assistido;
+- motor dinâmico de Perguntas Complementares;
+- checkpoint da etapa;
+- histórico de etapas analisadas na sessão;
+- detecção visual de ações protegidas presentes na página;
+- leitura/conferência das etapas de FCN, registro e pós-registro conforme a baseline.
+
+### Deliberadamente não automatizado nesta candidata
+
+Coleções complexas sem DOM real homologado, como inclusão/edição de sócios, administradores, representantes, integralizações, assinantes e documentos, são reconhecidas na baseline e podem receber dados no dossiê, mas permanecem em modo manual/conferência até captura da estrutura real.
+
+Isso evita selecionar pessoas, opções ou ações pela posição.
+
+## Dossiê opcional
+
+O dossiê continua opcional. Dados podem vir de:
+
+1. arquivo JSON importado localmente;
+2. campo manual do painel;
+3. preenchimento manual direto no portal.
+
+O dossiê completo não é persistido em `chrome.storage.local`. Rascunhos sensíveis da nova camada ficam em `chrome.storage.session`.
+
+CNAE ausente da base local **não é whitelist nem bloqueio**: recebe alerta e é validado pelo código exato no portal.
 
 ## Instalação
 
-1. Extraia o ZIP para uma pasta permanente, por exemplo `C:\jucees-assistente`.
+1. Extraia a pasta em local permanente.
 2. Abra `chrome://extensions`.
 3. Ative **Modo do desenvolvedor**.
 4. Clique em **Carregar sem compactação**.
-5. Selecione a pasta que contém diretamente `manifest.json`.
-6. Recarregue a página do Simplifica/ES após instalar ou atualizar a extensão.
+5. Selecione a pasta que contém `manifest.json`.
+6. Após atualizar, clique em **Recarregar** na extensão e recarregue também a aba do Simplifica ES.
 
-## Uso com o dossiê de teste
+## Primeiro teste recomendado da 1.7.0
 
-1. Abra a etapa com **Atividade Principal** e **Atividade(s) Secundária(s)**.
-2. Abra o painel da extensão.
-3. Importe `examples/dossie-constituicao-v1.exemplo.json` ou o dossiê de homologação equivalente.
-4. Confira o resumo e clique em **Usar CNAEs e respostas do dossiê**.
-5. Clique em **Analisar tela**.
-6. Clique em **Adicionar atividades e respostas**.
-7. Observe os primeiros CNAEs e confirme que a resposta de endereço foi marcada no cartão correspondente.
-8. No cenário de homologação atual, 28 CNAEs solicitam **Sim** e o CNAE `4789-0/07` solicita **Não**.
-9. Ao final, revise visualmente todos os cartões antes de avançar manualmente.
+1. Abra a tela de Atividades da Viabilidade.
+2. Abra o Side Panel.
+3. Clique em **Analisar etapa** no bloco Assistente do processo.
+4. Verifique se a etapa é identificada como `VP-07`.
+5. Informe Objeto da Empresa e Objeto do Estabelecimento.
+6. Clique em **Verificar campos**.
+7. Teste os três cenários de objetos:
+   - campo vazio;
+   - mesmo texto já existente;
+   - texto diferente já existente.
+8. No terceiro cenário, confirme que nenhum texto é sobrescrito.
+9. Depois teste **Tipo de Unidade**, **Forma de Atuação** e **Perguntas complementares**; se a tela ficar apenas em confiança moderada ou não reconhecida, envie o print/HTML sanitizado para endurecimento do detector.
 
-## Regra de segurança dos rádios
-
-A automação não usa `querySelectorAll(...)[0]` para significar Sim nem `[1]` para significar Não. O fluxo é:
-
-1. localizar um único cartão da seção correta;
-2. exigir que o cartão contenha somente o CNAE alvo;
-3. confirmar a pergunta `Exerce atividade no endereço informado?`;
-4. localizar os controles sem sair daquele cartão;
-5. exigir exatamente um `Sim` e um `Não` por rótulo/semântica;
-6. ler o estado atual;
-7. preservar resposta contrária já existente;
-8. após um novo clique, reler e confirmar o estado final.
-
-Qualquer ambiguidade resulta em parada para revisão.
-
-## Dossiê e privacidade
-
-- O arquivo JSON completo é processado localmente e não é enviado a servidor externo.
-- O dossiê completo não é gravado em `chrome.storage.local`.
-- O rascunho persiste somente os CNAEs, principal e o mapa mínimo de respostas de endereço necessário à continuidade local do preenchimento.
-- O estado da fila guarda somente rota sanitizada, sem URL completa, query string ou fragmento.
-- Não há telemetria, `fetch`, WebSocket, código remoto ou acesso geral a sites.
-- Nunca forneça senha gov.br, certificado digital, senha de certificado, token, MFA ou cookie de sessão à extensão.
-
-## Limitação herdada da recuperação 1.4.2
-
-A instalação original 1.4.1/1.4.2 foi perdida e esta linha foi reconstruída a partir do diferencial e do Contexto Mestre. A tabela completa original de 1.332 subclasses CNAE não estava no material recuperado. A cópia atual contém somente os CNAEs recuperados com segurança, incluindo todos os 29 códigos do cenário de homologação. CNAE ausente é bloqueado em modo **fail-closed**; nenhuma descrição é inventada.
-
-Antes de uso amplo com outros CNAEs, a base oficial completa CNAE 2.3 deve ser restaurada e regressada.
-
-## Desenvolvimento e testes
+## Desenvolvimento
 
 Requer Node.js 18+:
 
@@ -87,6 +100,6 @@ Requer Node.js 18+:
 npm test
 ```
 
-A candidata 1.5.0 passa em **69 testes automatizados** nesta reconstrução. Há regressões específicas para resposta `true`, `false`, `null`, resposta já correta, conflito com resposta oposta, duplicidade/ambiguidade de controles, estado inválido e proibição de seleção por posição global.
+A 1.7.0 passa em **147 testes automatizados** antes da homologação real desta entrega.
 
-Consulte `HOMOLOGACAO.md` antes de considerar a versão estável.
+Consulte `HOMOLOGACAO.md` para o roteiro de teste.

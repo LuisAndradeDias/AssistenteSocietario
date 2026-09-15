@@ -69,10 +69,12 @@ test('mascara documento sem expor o número completo', () => {
   assert.equal(dossier.maskDocument('52998224725'), '***.***.247-25');
 });
 
-test('recusa CNAE inexistente na tabela incorporada', () => {
+test('CNAE ausente da base local vira alerta e pode ser validado pelo portal', () => {
   const value = clone();
   value.atividades.principal.codigo = '9999999';
-  assert.equal(dossier.validateDossier(value).errors.some((item) => item.code === 'cnae'), true);
+  const report = dossier.validateDossier(value);
+  assert.equal(report.errors.some((item) => item.path === '$.atividades.principal.codigo'), false);
+  assert.equal(report.warnings.some((item) => item.code === 'cnae_unverified_local'), true);
 });
 
 test('recusa CNAE repetido entre principal e secundárias', () => {
@@ -88,7 +90,9 @@ test('recusa resposta do endereço fora de booleano ou nulo', () => {
 });
 
 test('alerta quando perguntas do endereço permanecem sem resposta', () => {
-  const result = dossier.validateDossier(clone());
+  const value = clone();
+  value.atividades.principal.exerceNoEndereco = null;
+  const result = dossier.validateDossier(value);
   assert.equal(result.warnings.some((item) => item.code === 'manual_address_answers'), true);
 });
 
@@ -116,16 +120,18 @@ test('recusa dossiê que desative a revisão humana', () => {
   assert.equal(dossier.validateDossier(value).errors.some((item) => item.code === 'safety'), true);
 });
 
-test('extrai CNAEs na ordem principal e secundárias', () => {
-  assert.deepEqual(dossier.extractCnaeDraft(clone()), {
-    principalCode: '6201501',
-    codes: ['6201501', '6202300']
-  });
+test('extrai CNAEs na ordem principal e secundárias com respostas de endereço', () => {
+  const value = clone();
+  const draft = dossier.extractCnaeDraft(value);
+  assert.equal(draft.principalCode, value.atividades.principal.codigo);
+  assert.deepEqual(draft.codes, [value.atividades.principal.codigo, ...value.atividades.secundarias.map((item) => item.codigo)]);
+  assert.equal(draft.addressAnswers[value.atividades.principal.codigo], value.atividades.principal.exerceNoEndereco);
+  assert.match(draft.text, /4751-2\/01/);
 });
 
 test('resumo não expõe documentos de sócios ou contabilista', () => {
   const summary = dossier.summarizeDossier(clone());
-  assert.equal(summary.companyName, 'EMPRESA MODELO TECNOLOGIA LTDA');
+  assert.equal(summary.companyName, example.empresa.nomeEmpresarial);
   assert.equal(JSON.stringify(summary).includes('52998224725'), false);
   assert.equal(JSON.stringify(summary).includes('11144477735'), false);
 });
