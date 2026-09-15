@@ -3,7 +3,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.JuceesProcessAutomation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, (baseline, processData) => {
-  const FORBIDDEN = ['avancar', 'proximo', 'prosseguir', 'continuar', 'salvar', 'gravar', 'enviar', 'finalizar', 'concluir', 'transmitir', 'protocolar', 'assinar', 'gerar taxa'];
+  const NAVIGATION_ACTIONS = Object.freeze(['avancar', 'proximo', 'prosseguir', 'continuar']);
+  const FORBIDDEN = Object.freeze(['salvar', 'gravar', 'enviar', 'finalizar', 'concluir', 'transmitir', 'protocolar', 'assinar', 'gerar taxa']);
   const BLOCKING_STATUSES = Object.freeze(['conflict', 'ambiguous', 'unverified', 'screen_error', 'not_found', 'invalid']);
 
   function normalizeText(value) {
@@ -23,6 +24,11 @@
   function isForbiddenActionLabel(value) {
     const label = normalizeText(value);
     return FORBIDDEN.some((term) => label === term || label.startsWith(`${term} `) || label.includes(` ${term} `));
+  }
+
+  function isNavigationActionLabel(value) {
+    const label = normalizeText(value);
+    return NAVIGATION_ACTIONS.some((term) => label === term || label.startsWith(`${term} `));
   }
 
   function scalarValueDecision(currentValue, requestedValue) {
@@ -334,7 +340,7 @@
     const requestedProvided = requestedRecord && Object.prototype.hasOwnProperty.call(requestedRecord, 'value');
     const requested = requestedProvided ? requestedRecord.value : undefined;
     if (field.mode === baseline?.MODES?.BLOCKED) return { key: field.key, label: field.label, mode: field.mode, status: 'blocked', detail: 'Automação proibida para este campo/ação.', requestedProvided };
-    if (field.mode === baseline?.MODES?.MANUAL) return { key: field.key, label: field.label, mode: field.mode, status: 'manual', detail: 'Ação/decisão mantida manual.', requestedProvided };
+    if (field.mode === baseline?.MODES?.MANUAL && !requestedProvided) return { key: field.key, label: field.label, mode: field.mode, status: 'manual', detail: 'Decisão mantida manual e ainda não informada para conferência.', requestedProvided };
     if (['collection', 'dynamic_questions'].includes(field.kind)) return { key: field.key, label: field.label, mode: field.mode, status: requestedProvided ? 'manual' : 'not_informed', detail: requestedProvided ? 'Dado disponível, mas esta coleção exige módulo específico ou DOM homologado.' : 'Dado não informado.', requestedProvided };
 
     const binding = findFieldBinding(field, documentRef);
@@ -342,6 +348,12 @@
 
     const currentValues = currentBindingValues(binding);
     if (!requestedProvided) return { key: field.key, label: field.label, mode: field.mode, status: 'not_informed', detail: 'Campo reconhecido, mas nenhum valor foi informado.', requestedProvided, current: currentValues };
+    if (field.mode === baseline?.MODES?.MANUAL) {
+      const comparable = binding.type === 'group' ? groupDecision(binding, requested) : binding.control.tagName === 'SELECT' ? selectOptionDecision(binding.control, requested) : scalarValueDecision(binding.control.value, requested);
+      if (comparable.status === 'verified') return { key: field.key, label: field.label, mode: field.mode, status: 'confirmed', detail: 'Decisão manual conferida e idêntica ao valor explícito.', requestedProvided, current: currentValues };
+      if (['conflict', 'ambiguous', 'not_found', 'invalid'].includes(comparable.status)) return { key: field.key, label: field.label, mode: field.mode, status: comparable.status, detail: comparable.detail, requestedProvided, current: currentValues };
+      return { key: field.key, label: field.label, mode: field.mode, status: 'manual', detail: 'A decisão continua manual; selecione o valor no portal para que a extensão possa apenas conferi-lo.', requestedProvided, current: currentValues };
+    }
     if (field.mode === baseline?.MODES?.CONFERENCE) {
       const comparable = binding.type === 'group' ? groupDecision(binding, requested) : binding.control.tagName === 'SELECT' ? selectOptionDecision(binding.control, requested) : scalarValueDecision(binding.control.value, requested);
       return { key: field.key, label: field.label, mode: field.mode, status: comparable.status === 'verified' ? 'confirmed' : 'conference', detail: comparable.status === 'verified' ? 'Valor conferido e idêntico.' : 'Campo de conferência: compare o valor atual com o solicitado; nenhuma alteração foi feita.', requestedProvided, current: currentValues };
@@ -647,6 +659,7 @@
     normalizeText,
     normalizeValue,
     isForbiddenActionLabel,
+    isNavigationActionLabel,
     scalarValueDecision,
     setValueDecision,
     optionMatchesRequested,

@@ -1,8 +1,8 @@
 # JUCEES Assistente — Contexto Mestre do Projeto
 
-**Atualização:** 14 de setembro de 2026  
+**Atualização:** 15 de setembro de 2026  
 **Base funcional homologada:** CNAEs + `exerceNoEndereco` no cenário real de 29 atividades  
-**Versão candidata integrada:** 1.7.0 — baseline executável da abertura LTDA  
+**Versão candidata integrada:** 1.8.0 — baseline executável da abertura LTDA  
 **Observação:** módulos além de CNAEs/endereço permanecem candidatos até homologação na tela real; a base CNAE local continua parcial, mas CNAE manual ausente é validado pelo portal e não tratado como whitelist.
 
 Este arquivo é a fonte de continuidade do projeto e deve acompanhar o pacote estável.
@@ -11,7 +11,7 @@ Este arquivo é a fonte de continuidade do projeto e deve acompanhar o pacote es
 
 ## 1. Instrução para um novo chat
 
-> Leia integralmente o Contexto Mestre do JUCEES Assistente. Continue a partir da candidata integrada 1.7.0, preservando CNAEs + `exerceNoEndereco` como módulos homologados. Nunca selecione controles pela posição, nunca invente seletores e não automatize avanço, salvamento, transmissão, assinatura, geração de taxa ou protocolo. Novas telas usam a baseline executável e permanecem fail-closed até homologação no DOM real.
+> Leia integralmente o Contexto Mestre do JUCEES Assistente. Continue a partir da candidata integrada 1.8.0, preservando CNAEs + `exerceNoEndereco` como módulos homologados. Nunca selecione controles pela posição nem invente seletores. Avançar/Próximo/Prosseguir/Continuar podem ser automatizados somente após checkpoint aprovado e opt-in do usuário; salvamento, transmissão, assinatura, geração de taxa e protocolo permanecem proibidos. Novas telas usam a baseline executável e permanecem fail-closed até homologação no DOM real.
 
 Nunca fornecer senha gov.br, certificado digital, token, protocolo sigiloso ou dados pessoais desnecessários.
 
@@ -29,7 +29,7 @@ Construir gradualmente uma extensão local do Chrome que importe um dossiê JSON
 
 O desenvolvimento ocorre em módulos pequenos, testáveis e homologados na página real.
 
-### Escopo implementado até a candidata 1.7.0
+### Escopo implementado até a candidata 1.8.0
 
 - CNAEs principal/secundários e `exerceNoEndereco` preservados como módulos homologados;
 - CNAE manual não depende de dossiê nem de presença na base local;
@@ -41,7 +41,7 @@ O desenvolvimento ocorre em módulos pequenos, testáveis e homologados na pági
 - checkpoint por etapa e histórico de análise em `storage.session`;
 - dossiê opcional ampliado, com correção manual no painel;
 - ações irreversíveis continuam bloqueadas;
-- 147 testes automatizados na candidata 1.7.0.
+- 147 testes automatizados na candidata 1.8.0.
 
 ### Ainda depende de homologação/mapeamento real
 
@@ -52,12 +52,21 @@ O desenvolvimento ocorre em módulos pequenos, testáveis e homologados na pági
 
 ---
 
+### Atualização operacional de 15/09/2026
+
+- Side Panel passa a ser modular: Fluxo de abertura, CNAEs, Objetos, Perguntas e Dossiê;
+- o usuário escolhe qual ferramenta deseja visualizar/usar;
+- Fluxo automático de abertura é opt-in e pode preencher campos seguros, conferir e navegar;
+- decisões manuais continuam humanas, mas podem ser conferidas pelo motor depois de marcadas no portal;
+- a navegação automática fica restrita a Abertura/Viabilidade e falha fechada diante de botão duplicado, etapa especializada, conflito ou pendência;
+- ações irreversíveis continuam fora da automação.
+
 ## 3. Princípios obrigatórios
 
 1. Fluidez é objetivo permanente, sem sacrificar confirmação.
 2. Desenvolver e homologar uma etapa por vez.
 3. Obter captura ou HTML sanitizado da página real antes de criar seletores.
-4. Nunca clicar automaticamente em **Avançar**, **Salvar**, **Enviar**, **Finalizar**, **Concluir**, **Transmitir** ou **Protocolar**.
+4. **Avançar/Próximo/Prosseguir/Continuar** podem ser clicados automaticamente somente no Fluxo de abertura, com opt-in, etapa reconhecida com alta confiança, checkpoint aprovado e um único controle elegível. **Salvar**, **Gravar**, **Enviar**, **Finalizar**, **Concluir**, **Transmitir**, **Assinar**, **Protocolar** e **Gerar Taxa** permanecem proibidos.
 5. Nunca substituir silenciosamente a atividade principal.
 6. Nunca escolher um resultado por ser o primeiro da lista.
 7. Exigir uma única opção isolada com código completo e descrição oficial.

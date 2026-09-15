@@ -11,12 +11,29 @@
   <header class="app-header">
     <div>
       <h1>JUCEES Assistente</h1>
-      <p>Versão 1.7.0 — abertura LTDA assistida, fail-closed e com revisão humana.</p>
+      <p>Versão 1.8.0 — abertura LTDA assistida, fail-closed e com revisão humana.</p>
     </div>
     <span class="badge neutral">Candidata</span>
   </header>
 
-  <section class="card" id="dossierCard">
+  <section class="card module-launcher" id="moduleLauncher">
+    <div class="section-header compact">
+      <div>
+        <h2>O que você quer usar?</h2>
+        <p class="section-subtitle">Cada ferramenta fica separada. Troque de módulo sem perder os dados da sessão.</p>
+      </div>
+    </div>
+    <div class="module-tabs" role="tablist" aria-label="Módulos do JUCEES Assistente">
+      <button type="button" class="module-tab active" data-module-target="process" role="tab" aria-selected="true">Fluxo de abertura</button>
+      <button type="button" class="module-tab" data-module-target="cnae" role="tab" aria-selected="false">CNAEs</button>
+      <button type="button" class="module-tab" data-module-target="objects" role="tab" aria-selected="false">Objetos</button>
+      <button type="button" class="module-tab" data-module-target="questions" role="tab" aria-selected="false">Perguntas</button>
+      <button type="button" class="module-tab" data-module-target="dossier" role="tab" aria-selected="false">Dossiê</button>
+    </div>
+    <p id="moduleHint" class="module-hint">Fluxo de abertura selecionado.</p>
+  </section>
+
+  <section class="card module-panel module-hidden" data-module-panel="dossier" id="dossierCard">
     <div class="section-header">
       <div>
         <h2>Dossiê JSON</h2>
@@ -37,7 +54,7 @@
     </div>
   </section>
 
-  <section class="card process-card" id="processCard">
+  <section class="card process-card module-panel" data-module-panel="process" id="processCard">
     <div class="section-header">
       <div>
         <h2>Assistente do processo</h2>
@@ -61,6 +78,18 @@
       <button id="applyProcess" type="button" class="primary" disabled>Aplicar dados seguros</button>
       <button id="checkpointProcess" type="button" disabled>Conferir etapa</button>
     </div>
+
+    <div class="flow-box">
+      <label class="toggle-row" for="autoFlowOpening">
+        <input id="autoFlowOpening" type="checkbox">
+        <span><strong>Fluxo automático de abertura</strong><small>Preenche campos seguros, confere e aciona somente Avançar/Próximo/Prosseguir/Continuar quando a etapa estiver sem pendências.</small></span>
+      </label>
+      <div class="inline-actions">
+        <button id="advanceValidatedStage" type="button" disabled>Avançar etapa validada</button>
+      </div>
+      <p id="autoFlowStatus" class="summary">Desativado. O avanço continua manual.</p>
+    </div>
+
     <p class="hint">Campos manuais podem ser informados diretamente abaixo quando a etapa for reconhecida. Dados do dossiê têm prioridade menor que uma correção manual feita neste painel.</p>
     <p id="processAuditSummary" class="summary process-audit-summary">Nenhuma etapa analisada nesta sessão.</p>
 
@@ -70,7 +99,7 @@
     </details>
   </section>
 
-  <section class="card" id="objectsCard">
+  <section class="card module-panel module-hidden" data-module-panel="objects" id="objectsCard">
     <div class="section-header">
       <div>
         <h2>Objetos</h2>
@@ -94,7 +123,7 @@
     <p class="hint">A extensão não gera nem reescreve o conteúdo. Texto diferente já existente no portal vira conflito e é preservado.</p>
   </section>
 
-  <section class="card" id="questionsCard">
+  <section class="card module-panel module-hidden" data-module-panel="questions" id="questionsCard">
     <div class="section-header">
       <div>
         <h2>Perguntas complementares</h2>
@@ -111,7 +140,7 @@
     <p class="hint">Pergunta sem resposta permanece manual. Uma pergunta que mudar de texto/estrutura não recebe resposta automaticamente.</p>
   </section>
 
-  <section class="card" id="cnaeCard">
+  <section class="card module-panel module-hidden" data-module-panel="cnae" id="cnaeCard">
     <div class="section-header">
       <div>
         <h2>Fila de CNAEs</h2>
@@ -135,7 +164,7 @@
     <p id="performanceHint"></p>
   </section>
 
-  <section class="card">
+  <section class="card module-panel module-hidden" data-module-panel="cnae" id="cnaeScreenCard">
     <div class="section-header">
       <div>
         <h2>Tela de atividades</h2>
@@ -147,7 +176,7 @@
     <button id="analyze">Analisar tela de CNAEs</button>
   </section>
 
-  <section class="card actions-card">
+  <section class="card actions-card module-panel module-hidden" data-module-panel="cnae" id="cnaeActionsCard">
     <div class="section-header compact">
       <div>
         <h2>Ações CNAE</h2>
@@ -162,10 +191,10 @@
       <button id="resetRun" type="button">Nova execução</button>
       <button id="clearExtension" type="button">Limpar extensão</button>
     </div>
-    <p class="hint">A extensão não aciona navegação, salvamento, envio, transmissão, assinatura, protocolo nem geração de taxa.</p>
+    <p class="hint">Este módulo não navega entre etapas. O avanço automático, quando habilitado, pertence somente ao módulo Fluxo de abertura.</p>
   </section>
 
-  <section id="progressCard" class="card" hidden>
+  <section id="progressCard" class="card module-panel module-hidden" data-module-panel="cnae" hidden>
     <div class="section-header">
       <div>
         <h2>Progresso dos CNAEs</h2>
@@ -188,5 +217,6 @@
 <script src="lib/performance.js"></script>
 <script src="lib/process-data.js"></script>
 <script src="sidepanel.js"></script>
+<script src="sidepanel-modules.js"></script>
 </body>
 </html>

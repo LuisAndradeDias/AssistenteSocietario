@@ -1,6 +1,6 @@
 {
   "name": "jucees-cnae-assistente",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "private": true,
   "description": "Assistente societário modular para abertura na JUCEES/Simplifica ES, com automação fail-closed e revisão humana.",
   "scripts": {

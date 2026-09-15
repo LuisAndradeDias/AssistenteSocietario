@@ -2,6 +2,7 @@
   const automation = globalThis.JuceesCnaeAutomation;
   const objectAutomation = globalThis.JuceesObjectAutomation;
   const processAutomation = globalThis.JuceesProcessAutomation;
+  const navigationAutomation = globalThis.JuceesNavigationAutomation;
   const cnaeTools = globalThis.JuceesCnae;
   const privacy = globalThis.JuceesPrivacy;
   const runStateTools = globalThis.JuceesRunState;
@@ -273,6 +274,11 @@
     if (message.type === 'juceesProcessCheckpoint') {
       if (!processAutomation) return { ok: false, error: 'Motor de processo indisponível.' };
       return { ok: true, checkpoint: processAutomation.checkpoint(message.values || {}, document) };
+    }
+    if (message.type === 'juceesProcessAdvance') {
+      if (!navigationAutomation) return { ok: false, error: 'Motor de navegação indisponível.' };
+      const result = navigationAutomation.advanceValidatedStage(message.stageId || '', document);
+      return { ok: result.ok, result };
     }
     if (message.type === 'juceesQuestionsAnalyze') {
       if (!processAutomation) return { ok: false, error: 'Motor de perguntas indisponível.' };

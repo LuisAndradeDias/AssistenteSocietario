@@ -1,8 +1,8 @@
-# JUCEES Assistente 1.7.0 — candidata integrada da abertura LTDA
+# JUCEES Assistente 1.8.0 — candidata integrada da abertura LTDA
 
 Extensão local Chrome Manifest V3 para preenchimento e conferência assistidos de processos no Simplifica ES/JUCEES.
 
-A versão 1.7.0 preserva o módulo homologado de CNAEs + `exerceNoEndereco`, conclui a candidata de **Objeto da Empresa / Objeto do Estabelecimento** e adiciona uma arquitetura de processo para todas as telas mapeadas da abertura de Sociedade Empresária Limitada.
+A versão 1.8.0 preserva o módulo homologado de CNAEs + `exerceNoEndereco`, conclui a candidata de **Objeto da Empresa / Objeto do Estabelecimento** e adiciona uma arquitetura de processo para todas as telas mapeadas da abertura de Sociedade Empresária Limitada.
 
 > **Importante:** os módulos novos são candidatos até teste no Simplifica real. Quando o DOM não é inequívoco, a extensão falha fechada e não altera a página.
 
@@ -10,9 +10,8 @@ A versão 1.7.0 preserva o módulo homologado de CNAEs + `exerceNoEndereco`, con
 
 **Dado explícito → identificação inequívoca → ação → confirmação do DOM → fail-closed → revisão humana.**
 
-A extensão não automatiza comandos equivalentes a:
+A extensão pode automatizar **Avançar / Próximo / Prosseguir / Continuar** somente no módulo Fluxo de abertura, após reconhecimento de alta confiança e checkpoint sem pendências. Ela não automatiza comandos irreversíveis equivalentes a:
 
-- Avançar;
 - Salvar;
 - Enviar;
 - Finalizar;
@@ -22,7 +21,7 @@ A extensão não automatiza comandos equivalentes a:
 - Protocolar;
 - Gerar taxa.
 
-## O que existe na 1.7.0
+## O que existe na 1.8.0
 
 ### Homologado e preservado
 
@@ -35,6 +34,10 @@ A extensão não automatiza comandos equivalentes a:
 - fila visual, pausa, retomada e recuperação conservadora.
 
 ### Candidato para homologação
+
+- painel modular com seleção entre Fluxo de abertura, CNAEs, Objetos, Perguntas e Dossiê;
+- fluxo automático opcional que aplica campos seguros, confere e navega para a próxima etapa quando não há pendências;
+- navegação fail-closed: exige um único botão Avançar/Próximo/Prosseguir/Continuar visível e habilitado;
 
 - Objeto da Empresa;
 - Objeto do Estabelecimento;
@@ -77,7 +80,7 @@ CNAE ausente da base local **não é whitelist nem bloqueio**: recebe alerta e �
 5. Selecione a pasta que contém `manifest.json`.
 6. Após atualizar, clique em **Recarregar** na extensão e recarregue também a aba do Simplifica ES.
 
-## Primeiro teste recomendado da 1.7.0
+## Primeiro teste recomendado da 1.8.0
 
 1. Abra a tela de Atividades da Viabilidade.
 2. Abra o Side Panel.
@@ -100,6 +103,6 @@ Requer Node.js 18+:
 npm test
 ```
 
-A 1.7.0 passa em **147 testes automatizados** antes da homologação real desta entrega.
+A 1.8.0 passa em **147 testes automatizados** antes da homologação real desta entrega.
 
 Consulte `HOMOLOGACAO.md` para o roteiro de teste.

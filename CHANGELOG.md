@@ -1,6 +1,16 @@
 # Histórico de versões
 
-## 1.7.0 — 2026-09-14 — candidata integrada da abertura LTDA
+## 1.8.0 — 2026-09-14 — candidata integrada da abertura LTDA
+
+### Atualização de UX e navegação — 2026-09-15
+
+- painel dividido em cinco módulos selecionáveis: Fluxo de abertura, CNAEs, Objetos, Perguntas e Dossiê;
+- adicionada preferência **Fluxo automático de abertura**;
+- etapas reconhecidas com alta confiança podem aplicar campos seguros, executar checkpoint e acionar um único botão Avançar/Próximo/Prosseguir/Continuar;
+- Salvar, Gravar, Enviar, Finalizar, Concluir, Transmitir, Assinar, Protocolar e Gerar Taxa continuam bloqueados;
+- decisões classificadas como manuais agora podem ser conferidas após o usuário marcá-las no portal, sem a extensão aplicá-las;
+- navegação automática limitada às fases Abertura e Viabilidade e interrompida em módulos especializados, ambiguidade, conflito ou pendência;
+- suíte ampliada para 154 testes automatizados.
 
 - recuperado e implementado `content/object-automation.js`;
 - Objeto da Empresa e Objeto do Estabelecimento passam a ter detecção inequívoca, conflito sem sobrescrita e confirmação pós-eventos;
