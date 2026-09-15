@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JUCEES Assistente",
   "short_name": "JUCEES Assistente",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "minimum_chrome_version": "114",
   "description": "Assistente societário para abertura na JUCEES/Simplifica ES, com preenchimento seguro, conferência e revisão humana.",
   "permissions": [
@@ -42,6 +42,7 @@
         "content/cnae-automation.js",
         "content/object-automation.js",
         "content/process-automation.js",
+        "content/navigation-automation.js",
         "content/content.js"
       ],
       "css": [

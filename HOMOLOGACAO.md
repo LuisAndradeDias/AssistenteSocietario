@@ -210,3 +210,36 @@ Se algum seletor não for reconhecido após mudança no portal, preserve somente
    - em Perguntas Complementares, prepare duas respostas e force a segunda pergunta/opção a ficar não reconhecível em fixture/HTML sanitizado;
    - confirme que nenhuma das duas respostas é aplicada durante o preflight;
    - falha ocorrida somente depois de um evento real deve interromper imediatamente qualquer ação posterior e exigir revisão.
+
+
+## Cenários de painel modular e avanço automático
+
+39. **Separação dos módulos**
+   - confirme que o Side Panel inicia em **Fluxo de abertura**;
+   - alterne entre CNAEs, Objetos, Perguntas e Dossiê;
+   - confirme que apenas o módulo selecionado fica visível e que os dados da sessão são preservados.
+
+40. **Avanço automático na tela inicial**
+   - habilite **Fluxo automático de abertura**;
+   - abra a primeira etapa reconhecida da abertura;
+   - confirme que a etapa é analisada, conferida e que somente um botão `Avançar`, `Próximo`, `Prosseguir` ou `Continuar` é acionado;
+   - confirme que a próxima tela é analisada novamente antes de qualquer nova ação.
+
+41. **Decisão manual conferida**
+   - em uma etapa cuja decisão permaneça manual, deixe a opção vazia e confirme que o fluxo pausa;
+   - marque manualmente no portal o mesmo valor explícito do dossiê;
+   - reanalise a etapa e confirme que ela passa a **Confirmado**, sem a extensão ter feito a escolha;
+   - o fluxo pode então conferir e avançar.
+
+42. **Navegação ambígua**
+   - em fixture sanitizada, exponha dois botões `Avançar`;
+   - confirme que nenhum é clicado e que a etapa exige revisão.
+
+43. **Ações irreversíveis continuam protegidas**
+   - exponha `Avançar` junto com `Salvar`, `Transmitir`, `Assinar` ou `Protocolar`;
+   - confirme que somente o botão de navegação pode ser elegível após checkpoint;
+   - confirme que os demais nunca são acionados automaticamente.
+
+44. **Parada em módulo especializado**
+   - deixe o fluxo automático chegar a Objetos/Atividades ou Perguntas Complementares;
+   - confirme que o fluxo genérico não avança a etapa especializado sem a conclusão do módulo correspondente.

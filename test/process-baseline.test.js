@@ -83,9 +83,14 @@ test('booleano Sim/Não usa aliases como alternativas e seleciona um único alvo
   assert.equal(no.targets[0].label, 'Não');
 });
 
-test('motor reconhece todos os rótulos críticos como proibidos', () => {
-  for (const label of ['Avançar', 'Próximo', 'Prosseguir', 'Continuar', 'Salvar', 'Gravar', 'Enviar', 'Finalizar', 'Concluir', 'Transmitir', 'Protocolar', 'Assinar', 'Gerar Taxa']) {
+test('motor separa navegação validada de ações irreversíveis', () => {
+  for (const label of ['Avançar', 'Próximo', 'Prosseguir', 'Continuar']) {
+    assert.equal(automation.isNavigationActionLabel(label), true, label);
+    assert.equal(automation.isForbiddenActionLabel(label), false, label);
+  }
+  for (const label of ['Salvar', 'Gravar', 'Enviar', 'Finalizar', 'Concluir', 'Transmitir', 'Protocolar', 'Assinar', 'Gerar Taxa']) {
     assert.equal(automation.isForbiddenActionLabel(label), true, label);
+    assert.equal(automation.isNavigationActionLabel(label), false, label);
   }
 });
 
@@ -110,7 +115,7 @@ test('automação genérica não usa seleção por posição para checkbox ou ra
 
 test('content script expõe rotas separadas para processo, objetos e perguntas', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'content', 'content.js'), 'utf8');
-  for (const type of ['juceesObjectsAnalyze', 'juceesObjectsApply', 'juceesProcessAnalyze', 'juceesProcessApply', 'juceesProcessCheckpoint', 'juceesQuestionsAnalyze', 'juceesQuestionsApply']) {
+  for (const type of ['juceesObjectsAnalyze', 'juceesObjectsApply', 'juceesProcessAnalyze', 'juceesProcessApply', 'juceesProcessCheckpoint', 'juceesProcessAdvance', 'juceesQuestionsAnalyze', 'juceesQuestionsApply']) {
     assert.match(source, new RegExp(type));
   }
 });
@@ -121,6 +126,7 @@ test('painel contém UX de processo, checkpoint e perguntas dinâmicas', () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
 });
+
 
 test('perguntas dinâmicas ficam restritas à VP-10 e aplicação exige confiança alta', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'content', 'content.js'), 'utf8');
@@ -135,6 +141,7 @@ test('painel invalida análise quando o dossiê muda e converte booleanos para o
   assert.match(source, /candidates\.add\('sim'\)/);
   assert.match(source, /candidates\.add\('nao'\)/);
 });
+
 
 test('aplicação genérica faz preflight e perguntas dinâmicas bloqueiam antes do primeiro clique conhecido', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'content', 'process-automation.js'), 'utf8');
