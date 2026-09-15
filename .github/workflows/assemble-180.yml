@@ -1,0 +1,54 @@
+name: Assemble JUCEES 1.8.0 candidate
+
+on:
+  push:
+    branches:
+      - feature/painel-modular-auto-avanco
+    paths:
+      - '.jucees-upload/**'
+      - '.github/workflows/assemble-180.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/painel-modular-auto-avanco
+          fetch-depth: 0
+
+      - name: Reconstruct exact patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .jucees-upload/part* | base64 -d > /tmp/jucees-180.zip
+          echo "0401e238c6c328114b01112766b6db5218c0ea16cc35aa658dfe3c1365e1bb24  /tmp/jucees-180.zip" | sha256sum -c -
+          rm -rf /tmp/jucees-180
+          mkdir -p /tmp/jucees-180
+          unzip -q /tmp/jucees-180.zip -d /tmp/jucees-180
+          cp -a /tmp/jucees-180/JUCEES-Assistente-1.8.0-PATCH-ALTERADOS/. .
+
+      - name: Validate candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test
+          find . -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+          find . -name '*.json' -not -path './node_modules/*' -print0 | xargs -0 -n1 jq empty
+
+      - name: Commit exact 1.8.0 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .jucees-upload
+          rm -f .github/workflows/assemble-180.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: JUCEES Assistente 1.8.0 modular flow candidate"
+          git push origin HEAD:feature/painel-modular-auto-avanco
